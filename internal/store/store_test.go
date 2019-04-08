@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-func execWithStore(f func(FeedStore)) {
+func execWithStore(f func(*FeedStore)) {
 	dbPath := fmt.Sprintf("test.%v.db?mode=memory", uuid.NewV4())
-	store := NewSQLiteFeedStore(dbPath)
+	store := NewFeedStore(dbPath)
 
 	if err := store.Initialize(); err != nil {
 		panic(err)
@@ -20,7 +20,7 @@ func execWithStore(f func(FeedStore)) {
 	f(store)
 }
 
-func createFeedAndItems(t *testing.T, store FeedStore, numItems int) FeedId {
+func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 	f := feed.Feed{Url: "http://foo.com", Name: "Foo Feed"}
 	feedId, err := store.UpsertFeed(f)
 	if err != nil {
@@ -43,7 +43,7 @@ func createFeedAndItems(t *testing.T, store FeedStore, numItems int) FeedId {
 }
 
 func TestRetrieveFeedsEmpty(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		if feeds, err := store.RetrieveFeeds(); err != nil {
 			t.Errorf("Could not retrieve feeds: %v", err)
 		} else if len(feeds) != 0 {
@@ -53,7 +53,7 @@ func TestRetrieveFeedsEmpty(t *testing.T) {
 }
 
 func TestUpsertNewFeed(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		feed := feed.Feed{Url: "http://foo.com", Name: "Foo Feed"}
 		if _, err := store.UpsertFeed(feed); err != nil {
 			t.Fatalf("Could not upsert new feed: %v", err)
@@ -79,7 +79,7 @@ func TestUpsertNewFeed(t *testing.T) {
 }
 
 func TestUpsertExistingFeed(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		url := "http://foo.com"
 		initialFeed := feed.Feed{Url: url, Name: "Foo Feed"}
 		insertedId, err := store.UpsertFeed(initialFeed)
@@ -117,7 +117,7 @@ func TestUpsertExistingFeed(t *testing.T) {
 }
 
 func TestUpsertMultipleFeeds(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		const numFeeds int = 10
 		for i := 0; i < numFeeds; i++ {
 			url := fmt.Sprintf("http://feed/%v", i)
@@ -137,7 +137,7 @@ func TestUpsertMultipleFeeds(t *testing.T) {
 }
 
 func TestUpsertNewFeedItem(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		f := feed.Feed{Url: "http://foo.com", Name: "Foo Feed"}
 		feedId, err := store.UpsertFeed(f)
 		if err != nil {
@@ -176,7 +176,7 @@ func TestUpsertNewFeedItem(t *testing.T) {
 }
 
 func TestUpsertExistingFeedItem(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		f := feed.Feed{Url: "http://foo.com", Name: "Foo Feed"}
 		feedId, err := store.UpsertFeed(f)
 		if err != nil {
@@ -225,7 +225,7 @@ func TestUpsertExistingFeedItem(t *testing.T) {
 }
 
 func TestUpsertMultipleFeedItems(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		const numFeedItems int = 10
 		feedId := createFeedAndItems(t, store, numFeedItems)
 
@@ -238,7 +238,7 @@ func TestUpsertMultipleFeedItems(t *testing.T) {
 }
 
 func TestNumUnread(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		const numFeedItems int = 10
 		createFeedAndItems(t, store, numFeedItems)
 
@@ -270,7 +270,7 @@ func TestNumUnread(t *testing.T) {
 }
 
 func TestDeleteFeed(t *testing.T) {
-	execWithStore(func(store FeedStore) {
+	execWithStore(func(store *FeedStore) {
 		feedId := createFeedAndItems(t, store, 10)
 
 		// Delete the feed and items
