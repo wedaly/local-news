@@ -78,16 +78,19 @@ func (s *FeedStore) Close() {
 // Once inserted, the feed is assigned a unique primary key
 func (s *FeedStore) UpsertFeed(feed feed.Feed) (FeedId, error) {
 	id, err := s.wrapInTxReturnId(func(tx *sql.Tx) (int64, error) {
-		var existingId int64
-		stmt := tx.Stmt(s.statements[selectFeedIdByUrlStmt])
-		err := stmt.QueryRow(feed.Url).Scan(&existingId)
-		if err == nil {
-			return existingId, s.updateFeed(tx, existingId, feed)
-		} else if err == sql.ErrNoRows {
-			return s.insertFeed(tx, feed)
-		} else {
+		feedId, err := s.upsertFeedRecord(tx, feed)
+		if err != nil {
 			return 0, err
 		}
+
+		for _, item := range feed.Items {
+			_, err := s.upsertFeedItemRecord(tx, FeedId(feedId), item)
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		return feedId, nil
 	})
 
 	if err != nil {
@@ -104,7 +107,7 @@ func (s *FeedStore) DeleteFeed(feedId FeedId) error {
 			return err
 		}
 
-		if err := s.deleteFeed(tx, feedId); err != nil {
+		if err := s.deleteFeedRecord(tx, feedId); err != nil {
 			return err
 		}
 
@@ -145,31 +148,6 @@ func (s *FeedStore) RetrieveFeeds() ([]FeedRecord, error) {
 	}
 
 	return records, nil
-}
-
-// UpsertFeedItem transactionally inserts-or-updates the specified feed item.
-// Feed items are uniquely identified by the "guid" attribute
-// Once inserted, the item is assigned a unique primary key
-// By default, the feed item is marked as unread.
-func (s *FeedStore) UpsertFeedItem(feedId FeedId, item feed.FeedItem) (FeedItemId, error) {
-	id, err := s.wrapInTxReturnId(func(tx *sql.Tx) (int64, error) {
-		var existingId int64
-		stmt := tx.Stmt(s.statements[selectFeedItemIdByGuidStmt])
-		err := stmt.QueryRow(feedId, item.Guid).Scan(&existingId)
-		if err == nil {
-			return existingId, s.updateFeedItem(tx, existingId, item)
-		} else if err == sql.ErrNoRows {
-			return s.insertFeedItem(tx, feedId, item)
-		} else {
-			return 0, err
-		}
-	})
-
-	if err != nil {
-		return 0, err
-	} else {
-		return FeedItemId(id), nil
-	}
 }
 
 // RetrieveFeedItems retrieves a record for every feed item for a given feed
@@ -379,7 +357,20 @@ func (s *FeedStore) wrapInTxReturnId(f func(tx *sql.Tx) (int64, error)) (int64, 
 	return id, nil
 }
 
-func (s *FeedStore) insertFeed(tx *sql.Tx, feed feed.Feed) (int64, error) {
+func (s *FeedStore) upsertFeedRecord(tx *sql.Tx, feed feed.Feed) (int64, error) {
+	var existingId int64
+	stmt := tx.Stmt(s.statements[selectFeedIdByUrlStmt])
+	err := stmt.QueryRow(feed.Url).Scan(&existingId)
+	if err == nil {
+		return existingId, s.updateFeedRecord(tx, existingId, feed)
+	} else if err == sql.ErrNoRows {
+		return s.insertFeedRecord(tx, feed)
+	} else {
+		return 0, err
+	}
+}
+
+func (s *FeedStore) insertFeedRecord(tx *sql.Tx, feed feed.Feed) (int64, error) {
 	stmt := tx.Stmt(s.statements[insertFeedStmt])
 	result, err := stmt.Exec(feed.Url, feed.Name)
 	if err != nil {
@@ -389,19 +380,32 @@ func (s *FeedStore) insertFeed(tx *sql.Tx, feed feed.Feed) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (s *FeedStore) updateFeed(tx *sql.Tx, id int64, feed feed.Feed) error {
+func (s *FeedStore) updateFeedRecord(tx *sql.Tx, id int64, feed feed.Feed) error {
 	stmt := tx.Stmt(s.statements[updateFeedStmt])
 	_, err := stmt.Exec(feed.Name, id)
 	return err
 }
 
-func (s *FeedStore) deleteFeed(tx *sql.Tx, id FeedId) error {
+func (s *FeedStore) deleteFeedRecord(tx *sql.Tx, id FeedId) error {
 	stmt := tx.Stmt(s.statements[deleteFeedStmt])
 	_, err := stmt.Exec(id)
 	return err
 }
 
-func (s *FeedStore) insertFeedItem(tx *sql.Tx, feedId FeedId, item feed.FeedItem) (int64, error) {
+func (s *FeedStore) upsertFeedItemRecord(tx *sql.Tx, feedId FeedId, item feed.FeedItem) (int64, error) {
+	var existingId int64
+	stmt := tx.Stmt(s.statements[selectFeedItemIdByGuidStmt])
+	err := stmt.QueryRow(feedId, item.Guid).Scan(&existingId)
+	if err == nil {
+		return existingId, s.updateFeedItemRecord(tx, existingId, item)
+	} else if err == sql.ErrNoRows {
+		return s.insertFeedItemRecord(tx, feedId, item)
+	} else {
+		return 0, err
+	}
+}
+
+func (s *FeedStore) insertFeedItemRecord(tx *sql.Tx, feedId FeedId, item feed.FeedItem) (int64, error) {
 	stmt := tx.Stmt(s.statements[insertFeedItemStmt])
 	result, err := stmt.Exec(
 		feedId,
@@ -416,7 +420,7 @@ func (s *FeedStore) insertFeedItem(tx *sql.Tx, feedId FeedId, item feed.FeedItem
 	return result.LastInsertId()
 }
 
-func (s *FeedStore) updateFeedItem(tx *sql.Tx, id int64, item feed.FeedItem) error {
+func (s *FeedStore) updateFeedItemRecord(tx *sql.Tx, id int64, item feed.FeedItem) error {
 	stmt := tx.Stmt(s.statements[updateFeedItemStmt])
 	_, err := stmt.Exec(item.Url, item.Title, item.Date.Unix(), id)
 	return err
