@@ -2,15 +2,13 @@ package store
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
 	"github.com/wedaly/local-news/internal/feed"
 	"testing"
 	"time"
 )
 
 func execWithStore(f func(*FeedStore)) {
-	dbPath := fmt.Sprintf("test.%v.db?mode=memory", uuid.NewV4())
-	store := NewFeedStore(dbPath)
+	store := NewFeedStore("file::memory:")
 
 	if err := store.Initialize(); err != nil {
 		panic(err)
