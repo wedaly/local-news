@@ -67,7 +67,8 @@ func TestUpsertNewFeed(t *testing.T) {
 			record := retrieved[0]
 			expected := FeedRecord{
 				Id:        1,
-				Feed:      feed,
+				Url:       feed.Url,
+				Name:      feed.Name,
 				NumUnread: 0,
 			}
 			if record != expected {
@@ -104,7 +105,8 @@ func TestUpsertExistingFeed(t *testing.T) {
 			record := retrieved[0]
 			expected := FeedRecord{
 				Id:        1,
-				Feed:      updatedFeed,
+				Url:       updatedFeed.Url,
+				Name:      updatedFeed.Name,
 				NumUnread: 0,
 			}
 			if record != expected {
@@ -159,9 +161,12 @@ func TestUpsertNewFeedItem(t *testing.T) {
 		} else {
 			record := retrieved[0]
 			expected := FeedItemRecord{
-				Id:       1,
-				FeedItem: item,
-				Read:     false,
+				Id:    1,
+				Title: item.Title,
+				Date:  item.Date,
+				Url:   item.Url,
+				Guid:  item.Guid,
+				Read:  false,
 			}
 			if record != expected {
 				t.Fatalf("Expected %v but got %v", expected, record)
@@ -205,9 +210,12 @@ func TestUpsertExistingFeedItem(t *testing.T) {
 		} else {
 			record := retrieved[0]
 			expected := FeedItemRecord{
-				Id:       1,
-				FeedItem: updatedItem,
-				Read:     false,
+				Id:    1,
+				Title: updatedItem.Title,
+				Date:  updatedItem.Date,
+				Url:   updatedItem.Url,
+				Guid:  updatedItem.Guid,
+				Read:  false,
 			}
 			if record != expected {
 				t.Fatalf("Expected %v but got %v", expected, record)

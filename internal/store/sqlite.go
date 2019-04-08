@@ -122,11 +122,9 @@ func (s *sqliteFeedStore) RetrieveFeeds() ([]FeedRecord, error) {
 		}
 
 		records = append(records, FeedRecord{
-			Id: FeedId(id),
-			Feed: feed.Feed{
-				Url:  url,
-				Name: name,
-			},
+			Id:        FeedId(id),
+			Url:       url,
+			Name:      name,
 			NumUnread: numUnread,
 		})
 	}
@@ -181,14 +179,12 @@ func (s *sqliteFeedStore) RetrieveFeedItems(feedId FeedId) ([]FeedItemRecord, er
 		}
 
 		records = append(records, FeedItemRecord{
-			Id: FeedItemId(id),
-			FeedItem: feed.FeedItem{
-				Title: title,
-				Date:  time.Unix(date, 0),
-				Url:   url,
-				Guid:  guid,
-			},
-			Read: read,
+			Id:    FeedItemId(id),
+			Title: title,
+			Date:  time.Unix(date, 0),
+			Url:   url,
+			Guid:  guid,
+			Read:  read,
 		})
 	}
 
