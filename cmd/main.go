@@ -2,21 +2,32 @@ package main
 
 import (
 	"fmt"
-	"github.com/wedaly/local-news/internal/app"
+	"github.com/wedaly/local-news/internal/controller"
+	"github.com/wedaly/local-news/internal/store"
 	"os"
 	"os/user"
 	"path"
 )
 
 func main() {
-	config := app.Config{DBPath: getDefaultDBPath()}
+	// Command line arg to set the DB path (optional)
+	dbPath := getDefaultDBPath()
 	if len(os.Args) > 1 {
-		config.DBPath = os.Args[1]
+		dbPath = os.Args[1]
 	}
 
-	err := app.Run(config)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unexpected error: %v\n", err)
+	// Open connection to the SQLite database
+	feedStore := store.NewFeedStore(dbPath)
+	if err := feedStore.Initialize(); err != nil {
+		fmt.Fprintf(os.Stderr, "Could not open database at '%v': %v", dbPath, err)
+		os.Exit(1)
+	}
+	defer feedStore.Close()
+
+	// Set up TUI and run event loop
+	ac := controller.NewAppController(feedStore)
+	if err := ac.App.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error running event loop: %v", err)
 		os.Exit(1)
 	}
 }
@@ -29,7 +40,7 @@ func getDefaultDBPath() string {
 			"Warning: could not find user's home directory: %v\n",
 			err)
 		return dbName
-    } else {
+	} else {
 		return path.Join(usr.HomeDir, dbName)
 	}
 }
