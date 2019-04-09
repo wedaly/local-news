@@ -2,7 +2,7 @@ package store
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/wedaly/local-news/internal/feed"
 	"log"
 	"time"
@@ -320,41 +320,72 @@ func (s *FeedStore) prepareStatements() error {
 	return nil
 }
 
+const maxRetries int = 10
+
 func (s *FeedStore) wrapInTx(f func(tx *sql.Tx) error) error {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-
-	if err := f(tx); err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Fatalf("Unable to rollback: %v", err)
+	numRetries := 0
+	for {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return err
 		}
-		return err
-	}
 
-	return tx.Commit()
+		if err := f(tx); err != nil {
+			if err := tx.Rollback(); err != nil {
+				log.Fatalf("Unable to rollback: %v", err)
+			}
+
+			if shouldRetryOnError(err) && numRetries < maxRetries {
+				numRetries++
+				continue
+			}
+
+			return err
+		}
+
+		return tx.Commit()
+	}
 }
 
 func (s *FeedStore) wrapInTxReturnId(f func(tx *sql.Tx) (int64, error)) (int64, error) {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return 0, err
-	}
-
-	id, err := f(tx)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Fatalf("Unable to rollback: %v", err)
+	numRetries := 0
+	for {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return 0, err
 		}
-		return 0, err
-	}
 
-	if err := tx.Commit(); err != nil {
-		return 0, err
-	}
+		id, err := f(tx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				log.Fatalf("Unable to rollback: %v", err)
+			}
 
-	return id, nil
+			if shouldRetryOnError(err) && numRetries < maxRetries {
+				numRetries++
+				continue
+			}
+
+			return 0, err
+		}
+
+		if err := tx.Commit(); err != nil {
+			return 0, err
+		}
+
+		return id, nil
+	}
+}
+
+func shouldRetryOnError(err error) bool {
+	if sqliteErr, ok := err.(sqlite3.Error); ok {
+		// This error code indicates a conflict between two threads.
+		// This can be resolved by aborting and restarting the txn.
+		if sqliteErr.Code == sqlite3.ErrBusy {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *FeedStore) upsertFeedRecord(tx *sql.Tx, feed feed.Feed) (int64, error) {
