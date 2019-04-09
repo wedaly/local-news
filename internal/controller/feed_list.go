@@ -31,7 +31,7 @@ func NewFeedListController(
 
 	// Set up the header to display feed loading status
 	statusHeader := tview.NewTextView().
-		SetText("Loading (1/16)")
+		SetText("Refreshing 10 feeds")
 
 	// Set up the footer to show help text
 	const helpText string = `(a) Add   (r) Refresh   (u) Show/hide unread   (ESC) Quit`
