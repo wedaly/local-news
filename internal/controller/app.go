@@ -16,30 +16,32 @@ const (
 // delegating to other controllers when necessary.
 type AppController struct {
 	App             *tview.Application
-	fs              *store.FeedStore
 	pages           *tview.Pages
 	pageControllers map[string]PageController
 	currentPage     string
 }
 
-func NewAppController(fs *store.FeedStore) *AppController {
+func NewAppController(feedStore *store.FeedStore) *AppController {
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 	pageControllers := make(map[string]PageController, 0)
-	ac := &AppController{app, fs, pages, pageControllers, pageFeedList}
+	ac := &AppController{app, pages, pageControllers, pageFeedList}
 	app.SetInputCapture(ac.CaptureInput)
 
+	// Set up the "feed details" page controller
+	feedDetailController := NewFeedDetailController(ac, feedStore)
+	pageControllers[pageFeedDetail] = feedDetailController
+
 	// Set up the "feed list" page controller
-	feedListController := NewFeedListController(ac)
+	feedListController := NewFeedListController(ac, feedDetailController, feedStore)
 	pageControllers[pageFeedList] = feedListController
 
 	// Set up the "add feed" page controller.
 	addFeedController := NewAddFeedController(ac)
 	pageControllers[pageAddFeed] = addFeedController
 
-	// Set up the "feed details" page controller
-	feedDetailController := NewFeedDetailController(ac)
-	pageControllers[pageFeedDetail] = feedDetailController
+	// Load initial data from database
+	feedListController.LoadFeedsFromStore()
 
 	// Add all pages to the tview `Pages` instance
 	// This has to happen last so that the UI setup from the child controllers

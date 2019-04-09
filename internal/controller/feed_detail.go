@@ -1,25 +1,26 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/store"
 )
 
 // FeedDetailController handles the UI for details about a particular feed,
 // mainly the list of items in the feed.
 type FeedDetailController struct {
 	appController *AppController
+	feedStore     *store.FeedStore
 	grid          *tview.Grid
 	list          *tview.List
 	statusHeader  *tview.TextView
 	helpFooter    *tview.TextView
 }
 
-func NewFeedDetailController(appController *AppController) PageController {
+func NewFeedDetailController(appController *AppController, feedStore *store.FeedStore) *FeedDetailController {
 	// Set up the list of feed items
 	list := tview.NewList().
-		AddItem("First item", "", 0, nil).
-		AddItem("Second item", "", 0, nil).
 		ShowSecondaryText(false)
 	list.Box.SetBorder(true)
 
@@ -39,7 +40,14 @@ func NewFeedDetailController(appController *AppController) PageController {
 		AddItem(list, 1, 0, 1, 1, 0, 0, true).
 		AddItem(helpFooter, 2, 0, 1, 1, 0, 0, false)
 
-	return &FeedDetailController{appController, grid, list, statusHeader, helpFooter}
+	return &FeedDetailController{
+		appController,
+		feedStore,
+		grid,
+		list,
+		statusHeader,
+		helpFooter,
+	}
 }
 
 func (c *FeedDetailController) GetPage() tview.Primitive {
@@ -53,4 +61,23 @@ func (c *FeedDetailController) HandleInput(event *tcell.EventKey) *tcell.EventKe
 	}
 
 	return event
+}
+
+// SetDisplayedFeed loads and displayes the latest version of the specified feed
+func (c *FeedDetailController) SetDisplayedFeed(feedId store.FeedId, feedName string) {
+	feedItems, err := c.feedStore.RetrieveFeedItems(feedId)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display the name of the feed
+	boxTitle := fmt.Sprintf("Feed: %v", feedName)
+	c.list.Box.SetTitle(boxTitle)
+
+	// Replace existing items with items from the database
+	c.list.Clear()
+	for _, item := range feedItems {
+		itemText := fmt.Sprintf("%v  %v", item.Date.Format("2006-01-02"), item.Title)
+		c.list.AddItem(itemText, "", 0, nil)
+	}
 }

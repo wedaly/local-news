@@ -3,22 +3,28 @@ package controller
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/store"
 )
 
 // FeedListController handles the "feed list" page in the UI
 type FeedListController struct {
-	appController *AppController
-	grid          *tview.Grid
-	list          *tview.List
-	statusHeader  *tview.TextView
-	helpFooter    *tview.TextView
+	appController        *AppController
+	feedDetailController *FeedDetailController
+	feedStore            *store.FeedStore
+	feedRecords          []store.FeedRecord
+	grid                 *tview.Grid
+	list                 *tview.List
+	statusHeader         *tview.TextView
+	helpFooter           *tview.TextView
 }
 
-func NewFeedListController(appController *AppController) PageController {
+func NewFeedListController(
+	appController *AppController,
+	feedDetailController *FeedDetailController,
+	feedStore *store.FeedStore) *FeedListController {
+
 	// Set up the list of feeds
 	list := tview.NewList().
-		AddItem("Foo", "", 0, nil).
-		AddItem("Bar", "", 0, nil).
 		ShowSecondaryText(false)
 	list.Box.SetBorder(true).
 		SetTitle("All Feeds")
@@ -39,8 +45,20 @@ func NewFeedListController(appController *AppController) PageController {
 		AddItem(list, 1, 0, 1, 1, 0, 0, true).
 		AddItem(helpFooter, 2, 0, 1, 1, 0, 0, false)
 
+	// Create slice for holding feed records
+	feedRecords := make([]store.FeedRecord, 0)
+
 	// Create the controller and install the handler for list selection events
-	c := &FeedListController{appController, grid, list, statusHeader, helpFooter}
+	c := &FeedListController{
+		appController,
+		feedDetailController,
+		feedStore,
+		feedRecords,
+		grid,
+		list,
+		statusHeader,
+		helpFooter,
+	}
 	list.SetSelectedFunc(c.handleFeedSelected)
 
 	return c
@@ -64,7 +82,25 @@ func (c *FeedListController) HandleInput(event *tcell.EventKey) *tcell.EventKey 
 	return event
 }
 
-func (c *FeedListController) handleFeedSelected(int, string, string, rune) {
-	// TODO: setup feed detail with feed item info
+func (c *FeedListController) LoadFeedsFromStore() {
+	feedRecords, err := c.feedStore.RetrieveFeeds()
+	if err != nil {
+		panic(err)
+	}
+
+	// Replace existing items with feeds from the database
+	c.list.Clear()
+	for _, feed := range feedRecords {
+		c.list.AddItem(feed.Name, "", 0, nil)
+	}
+
+	// Store the feed records in memory
+	// so we can retrieve them later using the list item index
+	c.feedRecords = feedRecords
+}
+
+func (c *FeedListController) handleFeedSelected(idx int, text string, secondaryText string, shortcut rune) {
+	feed := c.feedRecords[idx]
+	c.feedDetailController.SetDisplayedFeed(feed.Id, feed.Name)
 	c.appController.SwitchToPage(pageFeedDetail)
 }

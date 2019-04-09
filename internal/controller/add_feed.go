@@ -14,7 +14,7 @@ type AddFeedController struct {
 	urlField      *tview.InputField
 }
 
-func NewAddFeedController(appController *AppController) PageController {
+func NewAddFeedController(appController *AppController) *AddFeedController {
 	// Set up the form
 	form := tview.NewForm().
 		AddInputField("URL", "", 0, nil, nil).
