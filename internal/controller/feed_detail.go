@@ -28,7 +28,7 @@ func NewFeedDetailController(appController *AppController) PageController {
 		SetText("Last synced 2020-01-01")
 
 	// Set up a footer to display help text
-	const helpText string = `(u) Show/hide unread   (m) Mark all read   (d) Delete   (ESC) Quit`
+	const helpText string = `(o) Open in browser   (u) Show/hide unread   (m) Mark all read   (d) Delete   (ESC) Quit`
 	helpFooter := tview.NewTextView().
 		SetText(helpText)
 
