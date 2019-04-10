@@ -75,12 +75,15 @@ func (m *TaskManager) ScheduleLoadFeedTask(feedId store.FeedId) {
 		// Retrieve and parse the feed from a URL
 		feed, err := loader.LoadFeedFromUrl(feedRecord.Url)
 		if err != nil {
+			if err := m.feedStore.SetFeedSyncStatusError(feedId, err); err != nil {
+				panic(err)
+			}
 			m.notifyTaskCompleted(TaskResult{Err: err})
 			return
 		}
 
 		// Update the database
-		err = m.feedStore.UpdateFeed(feedId, feed)
+		err = m.feedStore.SyncFeed(feedId, feed)
 		if err != nil {
 			m.notifyTaskCompleted(TaskResult{Err: err})
 			return

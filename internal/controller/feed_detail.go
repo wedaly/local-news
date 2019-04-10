@@ -31,8 +31,7 @@ func NewFeedDetailController(
 	list.Box.SetBorder(true)
 
 	// Set up a header to display the feed's status (last synced, error, etc)
-	statusHeader := tview.NewTextView().
-		SetText("Last synced 2020-01-01")
+	statusHeader := tview.NewTextView()
 
 	// Set up a footer to display help text
 	const helpText string = `(o) Open in browser   (u) Show/hide unread   (m) Mark all read   (d) Delete   (ESC) Back`
@@ -94,6 +93,11 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 		panic(err)
 	}
 
+	hasSynced, syncStatus, err := c.feedStore.RetrieveFeedSyncStatus(c.feedId)
+	if err != nil {
+		panic(err)
+	}
+
 	// Display the name of the feed
 	boxTitle := fmt.Sprintf("Feed: %v", feed.Name)
 	c.list.Box.SetTitle(boxTitle)
@@ -103,6 +107,20 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 	for _, item := range feedItems {
 		itemText := fmt.Sprintf("%v  %v", item.Date.Format("2006-01-02"), item.Title)
 		c.list.AddItem(itemText, "", 0, nil)
+	}
+
+	// Display the feed's last sync status (if any)
+	if hasSynced {
+		if syncStatus.Success {
+			formattedDate := syncStatus.Date.Format("2006-01-02 15:04:05 MST")
+			lastSyncedText := fmt.Sprintf("Last synced %v", formattedDate)
+			c.statusHeader.SetText(lastSyncedText)
+		} else {
+			loadErrText := "An error occurred while loading the feed.  Please try reloading the feed later."
+			c.statusHeader.SetText(loadErrText)
+		}
+	} else {
+		c.statusHeader.SetText("Loading feed...")
 	}
 }
 

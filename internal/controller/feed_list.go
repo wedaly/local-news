@@ -83,6 +83,11 @@ func (c *FeedListController) HandleInput(event *tcell.EventKey) *tcell.EventKey 
 		return nil
 	}
 
+	if event.Rune() == 'r' {
+		c.refreshAllFeeds()
+		return nil
+	}
+
 	if event.Key() == tcell.KeyEscape {
 		c.appController.App.Stop()
 		return nil
@@ -135,4 +140,10 @@ func (c *FeedListController) updateTaskStatusText() {
 		status = fmt.Sprintf("Refreshing %v feed(s)...", c.numUncompletedTasks)
 	}
 	c.statusHeader.SetText(status)
+}
+
+func (c *FeedListController) refreshAllFeeds() {
+	for _, feedId := range c.listIdxToFeedId {
+		c.taskManager.ScheduleLoadFeedTask(feedId)
+	}
 }

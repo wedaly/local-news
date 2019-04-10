@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"fmt"
 	"github.com/wedaly/local-news/internal/feed"
 	"reflect"
@@ -40,7 +41,7 @@ func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 		t.Fatalf("Could not insert new feed: %v", err)
 	}
 
-	err = store.UpdateFeed(feedId, f)
+	err = store.SyncFeed(feedId, f)
 	if err != nil {
 		t.Fatalf("Could not upsert new feed: %v", err)
 	}
@@ -81,6 +82,25 @@ func assertFeedItems(t *testing.T, store *FeedStore, feedId FeedId, expected []F
 	}
 }
 
+func assertFeedSyncStatus(t *testing.T, store *FeedStore, feedId FeedId, expectFound, expectSuccess bool, expectedError error) {
+	found, status, err := store.RetrieveFeedSyncStatus(feedId)
+	if err != nil {
+		t.Errorf("Could not retrieve feed sync status: %v", err)
+	}
+
+	if found != expectFound {
+		t.Errorf("Sync status found was %v, expected %v", found, expectFound)
+	}
+
+	if status.Success != expectSuccess {
+		t.Errorf("Sync status success was %v, expected %v", status.Success, expectSuccess)
+	}
+
+	if fmt.Sprintf("%v", status.Error) != fmt.Sprintf("%v", expectedError) {
+		t.Errorf("Sync status error was %v, expected %v", status.Error, expectedError)
+	}
+}
+
 func TestRetrieveFeedsEmpty(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
 		expected := []FeedRecord{}
@@ -102,7 +122,7 @@ func TestInsertFeed(t *testing.T) {
 	})
 }
 
-func TestUpdateFeedNewItems(t *testing.T) {
+func TestSyncFeedNewItems(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
 		numItems := 2
 		feedId := createFeedAndItems(t, store, numItems)
@@ -123,10 +143,11 @@ func TestUpdateFeedNewItems(t *testing.T) {
 			},
 		}
 		assertFeedItems(t, store, feedId, expected)
+		assertFeedSyncStatus(t, store, feedId, true, true, nil)
 	})
 }
 
-func TestUpdateFeedExistingItems(t *testing.T) {
+func TestSyncFeedExistingItems(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
 		numItems := 2
 		feedId := createFeedAndItems(t, store, numItems)
@@ -142,7 +163,7 @@ func TestUpdateFeedExistingItems(t *testing.T) {
 				},
 			},
 		}
-		if err := store.UpdateFeed(feedId, updatedFeed); err != nil {
+		if err := store.SyncFeed(feedId, updatedFeed); err != nil {
 			t.Fatalf("Could not update feed: %v", err)
 		}
 
@@ -171,6 +192,34 @@ func TestUpdateFeedExistingItems(t *testing.T) {
 			},
 		}
 		assertFeedItems(t, store, feedId, expectedItems)
+		assertFeedSyncStatus(t, store, feedId, true, true, nil)
+	})
+}
+
+func TestRetrieveSyncStatusBeforeSync(t *testing.T) {
+	execWithStore(func(store *FeedStore) {
+		feedId, err := store.GetOrCreateFeedWithUrl("http://foo.com")
+		if err != nil {
+			t.Fatalf("Could not insert new feed: %v", err)
+		}
+		assertFeedSyncStatus(t, store, feedId, false, false, nil)
+	})
+}
+
+func TestSetFeedSyncStatusError(t *testing.T) {
+	execWithStore(func(store *FeedStore) {
+		feedId, err := store.GetOrCreateFeedWithUrl("http://foo.com")
+		if err != nil {
+			t.Fatalf("Could not insert new feed: %v", err)
+		}
+
+		syncErr := errors.New("KABOOM!")
+		err = store.SetFeedSyncStatusError(feedId, syncErr)
+		if err != nil {
+			t.Fatalf("Could not set feed sync status: %v", err)
+		}
+
+		assertFeedSyncStatus(t, store, feedId, true, false, syncErr)
 	})
 }
 

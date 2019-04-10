@@ -2,13 +2,15 @@ package store
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/wedaly/local-news/internal/feed"
 	"log"
 	"time"
 )
 
-const numStatements int = 10
+const numStatements int = 12
 
 const (
 	selectEveryFeedStmt = iota
@@ -21,6 +23,8 @@ const (
 	upsertFeedItemStmt
 	deleteItemsInFeedStmt
 	markFeedItemReadStmt
+	upsertFeedSyncStatusStmt
+	selectFeedSyncStatusStmt
 )
 
 // FeedStore provides thread-safe CRUD operations for feeds and feed items
@@ -113,11 +117,11 @@ func (s *FeedStore) GetOrCreateFeedWithUrl(url string) (FeedId, error) {
 	return id, nil
 }
 
-// UpdateFeed atomically updates a feed record and its items.
+// SyncFeed atomically updates a feed record and its items.
 // The feed name (but not ID) is overwritten with the new name.
 // The feed items are upserted, using the record GUID as the record's identity.
 // Existing items NOT included in the new feed are retained (not deleted)
-func (s *FeedStore) UpdateFeed(id FeedId, feed feed.Feed) error {
+func (s *FeedStore) SyncFeed(id FeedId, feed feed.Feed) error {
 	return s.wrapInTx(func(tx *sql.Tx) error {
 		err := s.updateFeedRecord(tx, id, feed)
 		if err != nil {
@@ -129,6 +133,11 @@ func (s *FeedStore) UpdateFeed(id FeedId, feed feed.Feed) error {
 			if err != nil {
 				return err
 			}
+		}
+
+		err = s.setFeedSyncStatusSuccess(tx, id)
+		if err != nil {
+			return err
 		}
 
 		return nil
@@ -252,6 +261,44 @@ func (s *FeedStore) MarkRead(id FeedItemId) error {
 	return err
 }
 
+// SetFeedSyncStatusError sets the most recent sync attempt to "error" status
+func (s *FeedStore) SetFeedSyncStatusError(id FeedId, syncErr error) error {
+	stmt := s.statements[upsertFeedSyncStatusStmt]
+	syncErrStr := fmt.Sprintf("%v", syncErr)
+	_, err := stmt.Exec(id, false, syncErrStr)
+	return err
+}
+
+// RetrieveFeedSyncStatus retrieves the status of
+// the most recently completed sync attempt
+// If no attempt has yet completed because the feed was just added,
+// then the first return value will be false.
+func (s *FeedStore) RetrieveFeedSyncStatus(id FeedId) (bool, FeedSyncStatus, error) {
+	var date int64
+	var success bool
+	var syncErrVal sql.NullString
+
+	stmt := s.statements[selectFeedSyncStatusStmt]
+	err := stmt.QueryRow(id).Scan(&date, &success, &syncErrVal)
+	if err == sql.ErrNoRows {
+		return false, FeedSyncStatus{}, nil
+	} else if err != nil {
+		return false, FeedSyncStatus{}, err
+	}
+
+	var syncErr error
+	if syncErrVal.Valid {
+		syncErr = errors.New(syncErrVal.String)
+	}
+
+	status := FeedSyncStatus{
+		Date:    time.Unix(date, 0),
+		Success: success,
+		Error:   syncErr,
+	}
+	return true, status, nil
+}
+
 func (s *FeedStore) enableForeignKeyConstraints() error {
 	sql := "PRAGMA foreign_keys = ON;"
 	_, err := s.db.Exec(sql)
@@ -282,6 +329,16 @@ func (s *FeedStore) installSchema() error {
 
 	CREATE INDEX IF NOT EXISTS feed_item_date_idx
 		ON feed_item(date);
+
+	CREATE TABLE IF NOT EXISTS feed_sync_status (
+		feed_id INTEGER NOT NULL PRIMARY KEY,
+		date INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+		success INTEGER NOT NULL,
+		error TEXT,
+		FOREIGN KEY (feed_id)
+			REFERENCES feed(id)
+			ON DELETE CASCADE
+	);
 	`
 	_, err := s.db.Exec(sql)
 	return err
@@ -383,6 +440,32 @@ func (s *FeedStore) prepareStatements() error {
 		s.statements[markFeedItemReadStmt] = stmt
 	}
 
+	upsertFeedSyncStatusSql := `
+		INSERT INTO feed_sync_status (feed_id, success, error)
+		VALUES (?, ?, ?)
+		ON CONFLICT(feed_id)
+		DO UPDATE SET
+			date = strftime('%s', 'now'),
+			success = excluded.success,
+			error = excluded.error
+	`
+	if stmt, err := s.db.Prepare(upsertFeedSyncStatusSql); err != nil {
+		return err
+	} else {
+		s.statements[upsertFeedSyncStatusStmt] = stmt
+	}
+
+	selectFeedSyncStatusSql := `
+		SELECT date, success, error
+		FROM feed_sync_status
+		WHERE feed_id = ?
+	`
+	if stmt, err := s.db.Prepare(selectFeedSyncStatusSql); err != nil {
+		return err
+	} else {
+		s.statements[selectFeedSyncStatusStmt] = stmt
+	}
+
 	return nil
 }
 
@@ -445,5 +528,11 @@ func (s *FeedStore) upsertFeedItemRecord(tx *sql.Tx, feedId FeedId, item feed.Fe
 func (s *FeedStore) deleteItemsInFeed(tx *sql.Tx, id FeedId) error {
 	stmt := tx.Stmt(s.statements[deleteItemsInFeedStmt])
 	_, err := stmt.Exec(id)
+	return err
+}
+
+func (s *FeedStore) setFeedSyncStatusSuccess(tx *sql.Tx, id FeedId) error {
+	stmt := tx.Stmt(s.statements[upsertFeedSyncStatusStmt])
+	_, err := stmt.Exec(id, true, nil)
 	return err
 }

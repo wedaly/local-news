@@ -43,3 +43,18 @@ type FeedItemRecord struct {
 	// The default value is false
 	Read bool
 }
+
+// FeedSyncStatus represents the most recent attempt to synchronize
+// the feed with its external source.
+type FeedSyncStatus struct {
+	// The datetime of the last sync attempt
+	Date time.Time
+
+	// Whether the last sync attempt was successful
+	Success bool
+
+	// The error, if any, that occurred during the sync
+	// This isn't displayed in the UI, but we store it anyway
+	// for debugging purposes.
+	Error error
+}
