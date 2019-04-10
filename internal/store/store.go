@@ -51,6 +51,10 @@ func (s *FeedStore) Initialize() error {
 
 	s.db = db
 
+	if err := s.enableForeignKeyConstraints(); err != nil {
+		return err
+	}
+
 	if err := s.installSchema(); err != nil {
 		return err
 	}
@@ -245,6 +249,12 @@ func (s *FeedStore) RetrieveFeedItems(feedId FeedId) ([]FeedItemRecord, error) {
 func (s *FeedStore) MarkRead(id FeedItemId) error {
 	stmt := s.statements[markFeedItemReadStmt]
 	_, err := stmt.Exec(id)
+	return err
+}
+
+func (s *FeedStore) enableForeignKeyConstraints() error {
+	sql := "PRAGMA foreign_keys = ON;"
+	_, err := s.db.Exec(sql)
 	return err
 }
 
