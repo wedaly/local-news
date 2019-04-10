@@ -114,6 +114,10 @@ func (c *FeedListController) LoadFeedsFromStore() {
 }
 
 func (c *FeedListController) RefreshAllFeeds() {
+	if c.numUncompletedTasks > 0 {
+		return
+	}
+
 	for _, feedId := range c.listIdxToFeedId {
 		c.taskManager.ScheduleLoadFeedTask(feedId)
 	}
