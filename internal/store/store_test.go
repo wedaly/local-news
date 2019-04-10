@@ -3,6 +3,7 @@ package store
 import (
 	"fmt"
 	"github.com/wedaly/local-news/internal/feed"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -35,7 +36,12 @@ func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 		f.Items = append(f.Items, item)
 	}
 
-	feedId, err := store.UpsertFeed(f)
+	feedId, err := store.InsertFeedWithUrl(f.Url)
+	if err != nil {
+		t.Fatalf("Could not insert new feed: %v", err)
+	}
+
+	err = store.UpdateFeed(feedId, f)
 	if err != nil {
 		t.Fatalf("Could not upsert new feed: %v", err)
 	}
@@ -43,205 +49,129 @@ func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 	return feedId
 }
 
+func assertFeed(t *testing.T, store *FeedStore, id FeedId, expected FeedRecord) {
+	feed, err := store.RetrieveFeed(id)
+	if err != nil {
+		t.Errorf("Could not retrieve feed: %v", err)
+	}
+
+	if !reflect.DeepEqual(feed, expected) {
+		t.Errorf("Incorrect feed, expected %v but got %v", expected, feed)
+	}
+}
+
+func assertFeeds(t *testing.T, store *FeedStore, expected []FeedRecord) {
+	feeds, err := store.RetrieveFeeds()
+	if err != nil {
+		t.Errorf("Could not retrieve feeds: %v", err)
+	}
+
+	if !reflect.DeepEqual(feeds, expected) {
+		t.Errorf("Incorrect feeds, expected %v but got %v", expected, feeds)
+	}
+}
+
+func assertFeedItems(t *testing.T, store *FeedStore, feedId FeedId, expected []FeedItemRecord) {
+	items, err := store.RetrieveFeedItems(feedId)
+	if err != nil {
+		t.Errorf("Could not retrieve feed items: %v", err)
+	}
+
+	if !reflect.DeepEqual(items, expected) {
+		t.Errorf("Incorrect feed items, expected %v but got %v", expected, items)
+	}
+}
+
 func TestRetrieveFeedsEmpty(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
-		if feeds, err := store.RetrieveFeeds(); err != nil {
-			t.Errorf("Could not retrieve feeds: %v", err)
-		} else if len(feeds) != 0 {
-			t.Errorf("Expected feeds list to be empty, but got %v", feeds)
-		}
+		expected := []FeedRecord{}
+		assertFeeds(t, store, expected)
 	})
 }
 
-func TestUpsertNewFeed(t *testing.T) {
+func TestInsertFeed(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
-		feed := feed.Feed{Url: "http://foo.com", Name: "Foo Feed"}
-		if _, err := store.UpsertFeed(feed); err != nil {
-			t.Fatalf("Could not upsert new feed: %v", err)
+		numItems := 1
+		feedId := createFeedAndItems(t, store, numItems)
+		expected := FeedRecord{
+			Id:        feedId,
+			Url:       "http://foo.com",
+			Name:      "Foo Feed",
+			NumUnread: 1,
 		}
-
-		if retrieved, err := store.RetrieveFeeds(); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed, but got %v", retrieved)
-		} else {
-			record := retrieved[0]
-			expected := FeedRecord{
-				Id:        1,
-				Url:       feed.Url,
-				Name:      feed.Name,
-				NumUnread: 0,
-			}
-			if record != expected {
-				t.Errorf("Expected %v but got %v", expected, record)
-			}
-		}
+		assertFeed(t, store, feedId, expected)
 	})
 }
 
-func TestUpsertExistingFeed(t *testing.T) {
+func TestUpdateFeedNewItems(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
-		url := "http://foo.com"
-		initialFeed := feed.Feed{Url: url, Name: "Foo Feed"}
-		insertedId, err := store.UpsertFeed(initialFeed)
-		if err != nil {
-			t.Fatalf("Could not upsert new feed: %v", err)
-		}
-
-		updatedFeed := feed.Feed{Url: url, Name: "Bar Feed"}
-		updatedId, err := store.UpsertFeed(updatedFeed)
-		if err != nil {
-			t.Fatalf("Could not upsert new feed: %v", err)
-		}
-
-		if insertedId != updatedId {
-			t.Errorf("Inserted new record instead of updating existing record")
-		}
-
-		if retrieved, err := store.RetrieveFeeds(); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed, but got %v", retrieved)
-		} else {
-			record := retrieved[0]
-			expected := FeedRecord{
-				Id:        1,
-				Url:       updatedFeed.Url,
-				Name:      updatedFeed.Name,
-				NumUnread: 0,
-			}
-			if record != expected {
-				t.Errorf("Expected %v but got %v", expected, record)
-			}
-		}
-	})
-}
-
-func TestUpsertMultipleFeeds(t *testing.T) {
-	execWithStore(func(store *FeedStore) {
-		const numFeeds int = 10
-		for i := 0; i < numFeeds; i++ {
-			url := fmt.Sprintf("http://feed/%v", i)
-			name := fmt.Sprintf("feed.%v", i)
-			feed := feed.Feed{Url: url, Name: name}
-			if _, err := store.UpsertFeed(feed); err != nil {
-				t.Fatalf("Could not upsert new feed: %v", err)
-			}
-		}
-
-		if retrieved, err := store.RetrieveFeeds(); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != numFeeds {
-			t.Fatalf("Expected %v feeds, but got %v", numFeeds, retrieved)
-		}
-	})
-}
-
-func TestUpsertNewFeedItem(t *testing.T) {
-	execWithStore(func(store *FeedStore) {
-		item := feed.FeedItem{
-			Title: "Foo feed item",
-			Date:  time.Unix(10, 0),
-			Url:   "http://foo.com/item",
-			Guid:  "abcd1234",
-		}
-		f := feed.Feed{
-			Url:   "http://foo.com",
-			Name:  "Foo Feed",
-			Items: []feed.FeedItem{item},
-		}
-		feedId, err := store.UpsertFeed(f)
-		if err != nil {
-			t.Fatalf("Could not upsert new feed: %v", err)
-		}
-
-		if retrieved, err := store.RetrieveFeedItems(feedId); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed item, but got %v", retrieved)
-		} else {
-			record := retrieved[0]
-			expected := FeedItemRecord{
+		numItems := 2
+		feedId := createFeedAndItems(t, store, numItems)
+		expected := []FeedItemRecord{
+			FeedItemRecord{
+				Id:    2,
+				Title: "Item 1",
+				Date:  time.Unix(1, 0),
+				Url:   "http://foo.com/1",
+				Guid:  "guid.1",
+			},
+			FeedItemRecord{
 				Id:    1,
-				Title: item.Title,
-				Date:  item.Date,
-				Url:   item.Url,
-				Guid:  item.Guid,
-				Read:  false,
-			}
-			if record != expected {
-				t.Fatalf("Expected %v but got %v", expected, record)
-			}
+				Title: "Item 0",
+				Date:  time.Unix(0, 0),
+				Url:   "http://foo.com/0",
+				Guid:  "guid.0",
+			},
 		}
+		assertFeedItems(t, store, feedId, expected)
 	})
 }
 
-func TestUpsertExistingFeedItem(t *testing.T) {
+func TestUpdateFeedExistingItems(t *testing.T) {
 	execWithStore(func(store *FeedStore) {
-		initialItem := feed.FeedItem{
-			Title: "Initial feed item",
-			Date:  time.Unix(10, 0),
-			Url:   "http://foo.com/initial",
-			Guid:  "abcd1234",
+		numItems := 2
+		feedId := createFeedAndItems(t, store, numItems)
+
+		updatedFeed := feed.Feed{
+			Name: "Updated feed",
+			Items: []feed.FeedItem{
+				feed.FeedItem{
+					Title: "Updated 0",
+					Date:  time.Unix(3, 0),
+					Url:   "http://updated/0",
+					Guid:  "guid.0",
+				},
+			},
+		}
+		if err := store.UpdateFeed(feedId, updatedFeed); err != nil {
+			t.Fatalf("Could not update feed: %v", err)
 		}
 
-		updatedItem := feed.FeedItem{
-			Title: "Updated feed item",
-			Date:  time.Unix(20, 0),
-			Url:   "http://foo.com/updated",
-			Guid:  "abcd1234",
+		expectedFeed := FeedRecord{
+			Id:        feedId,
+			Url:       "http://foo.com",
+			Name:      updatedFeed.Name,
+			NumUnread: 2,
 		}
+		assertFeed(t, store, feedId, expectedFeed)
 
-		// Upsert feed with initial version of the item
-		f := feed.Feed{
-			Url:   "http://foo.com",
-			Name:  "Foo Feed",
-			Items: []feed.FeedItem{initialItem},
-		}
-		feedId, err := store.UpsertFeed(f)
-		if err != nil {
-			t.Fatalf("Could not upsert new feed: %v", err)
-		}
-
-		// Upsert feed with the updated version of the item
-		f.Items = []feed.FeedItem{updatedItem}
-		_, err = store.UpsertFeed(f)
-		if err != nil {
-			t.Fatalf("Could not upsert updated feed: %v", err)
-		}
-
-		// Check that the item was updated
-		if retrieved, err := store.RetrieveFeedItems(feedId); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed item, but got %v", retrieved)
-		} else {
-			record := retrieved[0]
-			expected := FeedItemRecord{
+		expectedItems := []FeedItemRecord{
+			FeedItemRecord{
 				Id:    1,
-				Title: updatedItem.Title,
-				Date:  updatedItem.Date,
-				Url:   updatedItem.Url,
-				Guid:  updatedItem.Guid,
-				Read:  false,
-			}
-			if record != expected {
-				t.Fatalf("Expected %v but got %v", expected, record)
-			}
+				Title: "Updated 0",
+				Date:  time.Unix(3, 0),
+				Url:   "http://updated/0",
+				Guid:  "guid.0",
+			},
+			FeedItemRecord{
+				Id:    2,
+				Title: "Item 1",
+				Date:  time.Unix(1, 0),
+				Url:   "http://foo.com/1",
+				Guid:  "guid.1",
+			},
 		}
-	})
-}
-
-func TestUpsertMultipleFeedItems(t *testing.T) {
-	execWithStore(func(store *FeedStore) {
-		const numFeedItems int = 10
-		feedId := createFeedAndItems(t, store, numFeedItems)
-
-		if retrieved, err := store.RetrieveFeedItems(feedId); err != nil {
-			t.Fatalf("Could not retrieve feed items: %v", err)
-		} else if len(retrieved) != numFeedItems {
-			t.Fatalf("Expected %v feed items, but got %v", numFeedItems, retrieved)
-		}
+		assertFeedItems(t, store, feedId, expectedItems)
 	})
 }
 

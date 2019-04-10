@@ -43,22 +43,30 @@ func NewTaskManager(feedStore *store.FeedStore, subscribers []TaskSubscriber) *T
 // ScheduleLoadFeedTask enqueues a new task to load a feed from a URL.
 // If successfully loaded, the feed data is written to the database.
 // Subscribers are notified when the task is scheduled and completed.
-func (m *TaskManager) ScheduleLoadFeedTask(url string) {
+func (m *TaskManager) ScheduleLoadFeedTask(feedId store.FeedId) {
 	m.notifyTaskScheduled()
 	go func() {
 		// Block until loader is available
 		loader := <-m.loaderChan
 		defer func() { m.loaderChan <- loader }()
 
+		// Retrieve the feed record
+		// This implicitly validates that the feed has not been deleted
+		feedRecord, err := m.feedStore.RetrieveFeed(feedId)
+		if err != nil {
+			m.notifyTaskCompleted(TaskResult{err: err})
+			return
+		}
+
 		// Retrieve and parse the feed from a URL
-		feed, err := loader.LoadFeedFromUrl(url)
+		feed, err := loader.LoadFeedFromUrl(feedRecord.Url)
 		if err != nil {
 			m.notifyTaskCompleted(TaskResult{err: err})
 			return
 		}
 
 		// Update the database
-		feedId, err := m.feedStore.UpsertFeed(feed)
+		err = m.feedStore.UpdateFeed(feedId, feed)
 		if err != nil {
 			m.notifyTaskCompleted(TaskResult{err: err})
 			return

@@ -101,6 +101,6 @@ func (c *FeedListController) LoadFeedsFromStore() {
 
 func (c *FeedListController) handleFeedSelected(idx int, text string, secondaryText string, shortcut rune) {
 	feed := c.feedRecords[idx]
-	c.feedDetailController.SetDisplayedFeed(feed.Id, feed.Name)
+	c.feedDetailController.SetDisplayedFeed(feed.Id)
 	c.appController.SwitchToPage(pageFeedDetail)
 }

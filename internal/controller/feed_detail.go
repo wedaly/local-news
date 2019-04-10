@@ -64,14 +64,19 @@ func (c *FeedDetailController) HandleInput(event *tcell.EventKey) *tcell.EventKe
 }
 
 // SetDisplayedFeed loads and displayes the latest version of the specified feed
-func (c *FeedDetailController) SetDisplayedFeed(feedId store.FeedId, feedName string) {
+func (c *FeedDetailController) SetDisplayedFeed(feedId store.FeedId) {
+	feed, err := c.feedStore.RetrieveFeed(feedId)
+	if err != nil {
+		panic(err)
+	}
+
 	feedItems, err := c.feedStore.RetrieveFeedItems(feedId)
 	if err != nil {
 		panic(err)
 	}
 
 	// Display the name of the feed
-	boxTitle := fmt.Sprintf("Feed: %v", feedName)
+	boxTitle := fmt.Sprintf("Feed: %v", feed.Name)
 	c.list.Box.SetTitle(boxTitle)
 
 	// Replace existing items with items from the database

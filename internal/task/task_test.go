@@ -68,10 +68,16 @@ func TestScheduleLoadFeedTasks(t *testing.T) {
 	// Set up the task manager
 	tm := NewTaskManager(store, []TaskSubscriber{subscriber})
 
+	// Insert a new feed
+	feedId, err := store.InsertFeedWithUrl(server.URL)
+	if err != nil {
+		t.Fatalf("Could not insert feed record: %v", err)
+	}
+
 	// Kick off some load feed tasks
 	const numTasks int = 50
 	for i := 0; i < numTasks; i++ {
-		tm.ScheduleLoadFeedTask(server.URL)
+		tm.ScheduleLoadFeedTask(feedId)
 	}
 
 	// Block until all tasks processed
