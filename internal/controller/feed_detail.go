@@ -6,6 +6,7 @@ import (
 	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
+	"os/exec"
 )
 
 // FeedDetailController handles the UI for details about a particular feed,
@@ -20,6 +21,7 @@ type FeedDetailController struct {
 	statusHeader            *tview.TextView
 	helpFooter              *tview.TextView
 	feedId                  store.FeedId
+	listIdxToItemUrl        []string
 }
 
 func NewFeedDetailController(
@@ -58,6 +60,7 @@ func NewFeedDetailController(
 		statusHeader,
 		helpFooter,
 		store.FeedId(0),
+		nil,
 	}
 
 	// Subscribe for task updates
@@ -82,6 +85,11 @@ func (c *FeedDetailController) HandleInput(event *tcell.EventKey) *tcell.EventKe
 	if event.Rune() == 'd' {
 		c.deleteConfirmController.SetFeed(c.feedId)
 		c.appController.SwitchToPage(pageDeleteConfirm)
+		return nil
+	}
+
+	if event.Rune() == 'o' {
+		c.openItemInBrowser()
 		return nil
 	}
 
@@ -122,10 +130,13 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 	c.list.Box.SetTitle(boxTitle)
 
 	// Replace existing items with items from the database
+	// Keep track of the URL for each feed item so we can open it later.
 	c.list.Clear()
-	for _, item := range feedItems {
+	c.listIdxToItemUrl = make([]string, len(feedItems))
+	for i, item := range feedItems {
 		itemText := fmt.Sprintf("%v  %v", item.Date.Format("2006-01-02"), item.Title)
 		c.list.AddItem(itemText, "", 0, nil)
+		c.listIdxToItemUrl[i] = item.Url
 	}
 
 	// Display the feed's last sync status (if any)
@@ -153,4 +164,17 @@ func (c *FeedDetailController) HandleTaskCompleted(r task.TaskResult) {
 			c.LoadFeedDetailsFromStore()
 		}
 	})
+}
+
+func (c *FeedDetailController) openItemInBrowser() {
+	idx := c.list.GetCurrentItem()
+	url := c.listIdxToItemUrl[idx]
+
+	// Open the url using xdg-open
+	// This assumes that xdg-open is installed, so any distribution
+	// of this program should specify xdg-utils as a dependency.
+	exec.Command("xdg-open", url).Start()
+
+	// Update status so user knows something happened
+	c.statusHeader.SetText(fmt.Sprintf("Opened %v", url))
 }

@@ -50,9 +50,6 @@ func NewFeedListController(
 		AddItem(list, 1, 0, 1, 1, 0, 0, true).
 		AddItem(helpFooter, 2, 0, 1, 1, 0, 0, false)
 
-	// Create slice for holding feed records
-	listIdxToFeedId := make([]store.FeedId, 0)
-
 	// Create the controller and install the handler for list selection events
 	c := &FeedListController{
 		appController,
@@ -63,7 +60,7 @@ func NewFeedListController(
 		list,
 		statusHeader,
 		helpFooter,
-		listIdxToFeedId,
+		nil,
 		0,
 	}
 	list.SetSelectedFunc(c.handleFeedSelected)
