@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/store"
+	"github.com/wedaly/local-news/internal/task"
 )
 
 const (
@@ -21,7 +22,10 @@ type AppController struct {
 	currentPage     string
 }
 
-func NewAppController(feedStore *store.FeedStore) *AppController {
+func NewAppController(
+	feedStore *store.FeedStore,
+	taskManager *task.TaskManager) *AppController {
+
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 	pageControllers := make(map[string]PageController, 0)
@@ -29,15 +33,19 @@ func NewAppController(feedStore *store.FeedStore) *AppController {
 	app.SetInputCapture(ac.CaptureInput)
 
 	// Set up the "feed details" page controller
-	feedDetailController := NewFeedDetailController(ac, feedStore)
+	feedDetailController := NewFeedDetailController(ac, feedStore, taskManager)
 	pageControllers[pageFeedDetail] = feedDetailController
 
 	// Set up the "feed list" page controller
-	feedListController := NewFeedListController(ac, feedDetailController, feedStore)
+	feedListController := NewFeedListController(
+		ac,
+		feedDetailController,
+		feedStore,
+		taskManager)
 	pageControllers[pageFeedList] = feedListController
 
 	// Set up the "add feed" page controller.
-	addFeedController := NewAddFeedController(ac)
+	addFeedController := NewAddFeedController(ac, feedStore, taskManager)
 	pageControllers[pageAddFeed] = addFeedController
 
 	// Load initial data from database

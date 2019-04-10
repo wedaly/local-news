@@ -4,17 +4,25 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/store"
+	"github.com/wedaly/local-news/internal/task"
 	"net/url"
 )
 
 // AddFeedController handles the form for creating a new feed from a URL
 type AddFeedController struct {
 	appController *AppController
+	feedStore     *store.FeedStore
+	taskManager   *task.TaskManager
 	form          *tview.Form
 	urlField      *tview.InputField
 }
 
-func NewAddFeedController(appController *AppController) *AddFeedController {
+func NewAddFeedController(
+	appController *AppController,
+	feedStore *store.FeedStore,
+	taskManager *task.TaskManager) *AddFeedController {
+
 	// Set up the form
 	form := tview.NewForm().
 		AddInputField("URL", "", 0, nil, nil).
@@ -29,11 +37,17 @@ func NewAddFeedController(appController *AppController) *AddFeedController {
 	urlField.SetPlaceholder("Press Ctrl-V to paste feed URL")
 	urlField.SetPlaceholderTextColor(tcell.ColorBlack)
 
-	okButton := form.GetButton(0)
+	c := &AddFeedController{
+		appController,
+		feedStore,
+		taskManager,
+		form,
+		urlField,
+	}
 
 	// Install event handlers for text changed and OK pressed
-	c := &AddFeedController{appController, form, urlField}
 	urlField.SetChangedFunc(c.handleUrlFieldChange)
+	okButton := form.GetButton(0)
 	okButton.SetSelectedFunc(c.handleOkButton)
 
 	return c
@@ -91,9 +105,19 @@ func (c *AddFeedController) handleOkButton() {
 		return
 	}
 
-	// TODO: kick off task to upsert the feed
+	// Create a placeholder database record for the feed
+	feedId, err := c.feedStore.GetOrCreateFeedWithUrl(urlText)
+	if err != nil {
+		panic(err)
+	}
 
+	// Schedule background task to load the feed data
+	c.taskManager.ScheduleLoadFeedTask(feedId)
+
+	// Reset the UI
 	c.urlField.SetText("")
+
+	// Switch back to the feed list page
 	c.appController.SwitchToPage(pageFeedList)
 }
 

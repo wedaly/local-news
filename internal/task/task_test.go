@@ -66,10 +66,11 @@ func TestScheduleLoadFeedTasks(t *testing.T) {
 	}
 
 	// Set up the task manager
-	tm := NewTaskManager(store, []TaskSubscriber{subscriber})
+	tm := NewTaskManager(store)
+	tm.Subscribe(subscriber)
 
 	// Insert a new feed
-	feedId, err := store.InsertFeedWithUrl(server.URL)
+	feedId, err := store.GetOrCreateFeedWithUrl(server.URL)
 	if err != nil {
 		t.Fatalf("Could not insert feed record: %v", err)
 	}
@@ -84,10 +85,10 @@ func TestScheduleLoadFeedTasks(t *testing.T) {
 	for i := 0; i < numTasks; i++ {
 		r := <-subscriber.resultChan
 
-		if r.err != nil {
-			t.Errorf("Unexpected error processing task: %v", r.err)
-		} else if r.feedId != 1 {
-			t.Errorf("Unexpected feed id in task result: %v", r.feedId)
+		if r.Err != nil {
+			t.Errorf("Unexpected error processing task: %v", r.Err)
+		} else if r.FeedId != 1 {
+			t.Errorf("Unexpected feed id in task result: %v", r.FeedId)
 		}
 	}
 

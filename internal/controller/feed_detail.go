@@ -5,6 +5,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/store"
+	"github.com/wedaly/local-news/internal/task"
 )
 
 // FeedDetailController handles the UI for details about a particular feed,
@@ -12,13 +13,18 @@ import (
 type FeedDetailController struct {
 	appController *AppController
 	feedStore     *store.FeedStore
+	taskManager   *task.TaskManager
 	grid          *tview.Grid
 	list          *tview.List
 	statusHeader  *tview.TextView
 	helpFooter    *tview.TextView
+	feedId        store.FeedId
 }
 
-func NewFeedDetailController(appController *AppController, feedStore *store.FeedStore) *FeedDetailController {
+func NewFeedDetailController(
+	appController *AppController,
+	feedStore *store.FeedStore,
+	taskManager *task.TaskManager) *FeedDetailController {
 	// Set up the list of feed items
 	list := tview.NewList().
 		ShowSecondaryText(false)
@@ -40,14 +46,21 @@ func NewFeedDetailController(appController *AppController, feedStore *store.Feed
 		AddItem(list, 1, 0, 1, 1, 0, 0, true).
 		AddItem(helpFooter, 2, 0, 1, 1, 0, 0, false)
 
-	return &FeedDetailController{
+	c := &FeedDetailController{
 		appController,
 		feedStore,
+		taskManager,
 		grid,
 		list,
 		statusHeader,
 		helpFooter,
+		store.FeedId(0),
 	}
+
+	// Subscribe for task updates
+	taskManager.Subscribe(c)
+
+	return c
 }
 
 func (c *FeedDetailController) GetPage() tview.Primitive {
@@ -64,13 +77,19 @@ func (c *FeedDetailController) HandleInput(event *tcell.EventKey) *tcell.EventKe
 }
 
 // SetDisplayedFeed loads and displayes the latest version of the specified feed
+// Assumes that this is called from within the TUI event loop
 func (c *FeedDetailController) SetDisplayedFeed(feedId store.FeedId) {
-	feed, err := c.feedStore.RetrieveFeed(feedId)
+	c.feedId = feedId
+	c.LoadFeedDetailsFromStore()
+}
+
+func (c *FeedDetailController) LoadFeedDetailsFromStore() {
+	feed, err := c.feedStore.RetrieveFeed(c.feedId)
 	if err != nil {
 		panic(err)
 	}
 
-	feedItems, err := c.feedStore.RetrieveFeedItems(feedId)
+	feedItems, err := c.feedStore.RetrieveFeedItems(c.feedId)
 	if err != nil {
 		panic(err)
 	}
@@ -85,4 +104,16 @@ func (c *FeedDetailController) SetDisplayedFeed(feedId store.FeedId) {
 		itemText := fmt.Sprintf("%v  %v", item.Date.Format("2006-01-02"), item.Title)
 		c.list.AddItem(itemText, "", 0, nil)
 	}
+}
+
+func (c *FeedDetailController) HandleTaskScheduled() {
+	// ignore
+}
+
+func (c *FeedDetailController) HandleTaskCompleted(r task.TaskResult) {
+	c.appController.App.QueueUpdateDraw(func() {
+		if c.feedId == r.FeedId {
+			c.LoadFeedDetailsFromStore()
+		}
+	})
 }

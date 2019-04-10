@@ -8,18 +8,17 @@ import (
 	"time"
 )
 
-const numStatements int = 11
+const numStatements int = 10
 
 const (
 	selectEveryFeedStmt = iota
-	selectFeedStmt      = iota
+	selectFeedStmt
+	selectFeedIdByUrlStmt
 	insertFeedStmt
 	updateFeedStmt
 	deleteFeedStmt
 	selectFeedItemsForFeedStmt
-	selectFeedItemIdByGuidStmt
-	insertFeedItemStmt
-	updateFeedItemStmt
+	upsertFeedItemStmt
 	deleteItemsInFeedStmt
 	markFeedItemReadStmt
 )
@@ -76,17 +75,42 @@ func (s *FeedStore) Close() {
 // InsertFeedWithUrl creates a feed record for the specified URL
 // This is a placeholder with no feed items, meant to be updated
 // once the feed is loaded from an external source (e.g. RSS XML)
-func (s *FeedStore) InsertFeedWithUrl(url string) (FeedId, error) {
-	placeholder := feed.Feed{
-		Url:  url,
-		Name: url,
+func (s *FeedStore) GetOrCreateFeedWithUrl(url string) (FeedId, error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
 	}
-	id, err := s.insertFeedRecord(placeholder)
-	return FeedId(id), err
+
+	// Insert a placeholder record, ignoring conflicts
+	// This ensures that a record exists for the specified feed URL
+	stmt := tx.Stmt(s.statements[insertFeedStmt])
+	placeholderName := url
+	if _, err := stmt.Exec(url, placeholderName); err != nil {
+		if err := tx.Rollback(); err != nil {
+			log.Fatalf("Unable to rollback: %v", err)
+		}
+		return 0, err
+	}
+
+	// Retrieve the feed ID
+	stmt = tx.Stmt(s.statements[selectFeedIdByUrlStmt])
+	var id FeedId
+	if err := stmt.QueryRow(url).Scan(&id); err != nil {
+		if err := tx.Rollback(); err != nil {
+			log.Fatalf("Unable to rollback: %v", err)
+		}
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 // UpdateFeed atomically updates a feed record and its items.
-// The feed name (but not URL or ID) is overwritten with the new name.
+// The feed name (but not ID) is overwritten with the new name.
 // The feed items are upserted, using the record GUID as the record's identity.
 // Existing items NOT included in the new feed are retained (not deleted)
 func (s *FeedStore) UpdateFeed(id FeedId, feed feed.Feed) error {
@@ -235,7 +259,7 @@ func (s *FeedStore) installSchema() error {
 	CREATE TABLE IF NOT EXISTS feed_item (
 		id INTEGER NOT NULL PRIMARY KEY,
 		feed_id INTEGER NOT NULL,
-		guid VARCHAR UNIQUE NOT NULL,
+		guid VARCHAR NOT NULL,
 		url VARCHAR NOT NULL,
 		title VARCHAR NOT NULL,
 		date INTEGER NOT NULL,
@@ -243,6 +267,7 @@ func (s *FeedStore) installSchema() error {
 		FOREIGN KEY (feed_id) REFERENCES feed(id)
 	);
 
+	CREATE UNIQUE INDEX IF NOT EXISTS feed_item_feed_guid_idx ON feed_item(feed_id, guid);
 	CREATE INDEX IF NOT EXISTS feed_item_date_idx ON feed_item(date);
 	`
 	_, err := s.db.Exec(sql)
@@ -275,7 +300,16 @@ func (s *FeedStore) prepareStatements() error {
 		s.statements[selectFeedStmt] = stmt
 	}
 
-	insertFeedSql := "INSERT INTO feed (url, name) VALUES (?, ?)"
+	selectFeedIdByUrlSql := "SELECT id FROM feed WHERE url = ?"
+	if stmt, err := s.db.Prepare(selectFeedIdByUrlSql); err != nil {
+		return err
+	} else {
+		s.statements[selectFeedIdByUrlStmt] = stmt
+	}
+
+	insertFeedSql := `
+		INSERT INTO feed (url, name) VALUES (?, ?)
+		ON CONFLICT(url) DO NOTHING`
 	if stmt, err := s.db.Prepare(insertFeedSql); err != nil {
 		return err
 	} else {
@@ -307,32 +341,19 @@ func (s *FeedStore) prepareStatements() error {
 		s.statements[selectFeedItemsForFeedStmt] = stmt
 	}
 
-	selectFeedItemIdByGuidSql := `
-		SELECT id FROM feed_item
-		WHERE feed_id = ? AND guid = ?`
-	if stmt, err := s.db.Prepare(selectFeedItemIdByGuidSql); err != nil {
-		return err
-	} else {
-		s.statements[selectFeedItemIdByGuidStmt] = stmt
-	}
-
-	insertFeedItemSql := `
+	upsertFeedItemSql := `
 		INSERT INTO feed_item (feed_id, guid, url, title, date)
-		VALUES (?, ?, ?, ?, ?)`
-	if stmt, err := s.db.Prepare(insertFeedItemSql); err != nil {
+		VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(feed_id, guid)
+		DO UPDATE SET
+			url=excluded.url,
+			title=excluded.title,
+			date=excluded.date
+	`
+	if stmt, err := s.db.Prepare(upsertFeedItemSql); err != nil {
 		return err
 	} else {
-		s.statements[insertFeedItemStmt] = stmt
-	}
-
-	updateFeedItemSql := `
-		UPDATE feed_item
-		SET url = ?, title = ?, date = ?
-		WHERE id = ?`
-	if stmt, err := s.db.Prepare(updateFeedItemSql); err != nil {
-		return err
-	} else {
-		s.statements[updateFeedItemStmt] = stmt
+		s.statements[upsertFeedItemStmt] = stmt
 	}
 
 	deleteItemsInFeedSql := "DELETE FROM feed_item WHERE feed_id = ?"
@@ -390,16 +411,6 @@ func shouldRetryOnError(err error) bool {
 	return false
 }
 
-func (s *FeedStore) insertFeedRecord(feed feed.Feed) (int64, error) {
-	stmt := s.statements[insertFeedStmt]
-	result, err := stmt.Exec(feed.Url, feed.Name)
-	if err != nil {
-		return 0, err
-	}
-
-	return result.LastInsertId()
-}
-
 func (s *FeedStore) updateFeedRecord(tx *sql.Tx, id FeedId, feed feed.Feed) error {
 	stmt := tx.Stmt(s.statements[updateFeedStmt])
 	_, err := stmt.Exec(feed.Name, id)
@@ -413,32 +424,8 @@ func (s *FeedStore) deleteFeedRecord(tx *sql.Tx, id FeedId) error {
 }
 
 func (s *FeedStore) upsertFeedItemRecord(tx *sql.Tx, feedId FeedId, item feed.FeedItem) error {
-	var existingId int64
-	stmt := tx.Stmt(s.statements[selectFeedItemIdByGuidStmt])
-	err := stmt.QueryRow(feedId, item.Guid).Scan(&existingId)
-	if err == nil {
-		return s.updateFeedItemRecord(tx, existingId, item)
-	} else if err == sql.ErrNoRows {
-		return s.insertFeedItemRecord(tx, feedId, item)
-	} else {
-		return err
-	}
-}
-
-func (s *FeedStore) insertFeedItemRecord(tx *sql.Tx, feedId FeedId, item feed.FeedItem) error {
-	stmt := tx.Stmt(s.statements[insertFeedItemStmt])
-	_, err := stmt.Exec(
-		feedId,
-		item.Guid,
-		item.Url,
-		item.Title,
-		item.Date.Unix())
-	return err
-}
-
-func (s *FeedStore) updateFeedItemRecord(tx *sql.Tx, id int64, item feed.FeedItem) error {
-	stmt := tx.Stmt(s.statements[updateFeedItemStmt])
-	_, err := stmt.Exec(item.Url, item.Title, item.Date.Unix(), id)
+	stmt := tx.Stmt(s.statements[upsertFeedItemStmt])
+	_, err := stmt.Exec(feedId, item.Guid, item.Url, item.Title, item.Date.Unix())
 	return err
 }
 

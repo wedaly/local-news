@@ -21,7 +21,6 @@ func execWithStore(f func(*FeedStore)) {
 
 func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 	f := feed.Feed{
-		Url:   "http://foo.com",
 		Name:  "Foo Feed",
 		Items: make([]feed.FeedItem, 0, numItems),
 	}
@@ -36,7 +35,7 @@ func createFeedAndItems(t *testing.T, store *FeedStore, numItems int) FeedId {
 		f.Items = append(f.Items, item)
 	}
 
-	feedId, err := store.InsertFeedWithUrl(f.Url)
+	feedId, err := store.GetOrCreateFeedWithUrl("http://foo.com")
 	if err != nil {
 		t.Fatalf("Could not insert new feed: %v", err)
 	}

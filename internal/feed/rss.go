@@ -3,17 +3,13 @@ package feed
 import (
 	"encoding/xml"
 	"errors"
+	"io"
 	"time"
 )
 
 type rssFeed struct {
-	Channel rssChannel `xml:"channel"`
-	Items   []rssItem  `xml:"item"`
-}
-
-type rssChannel struct {
-	Title string `xml:"title"`
-	Link  string `xml:"link"`
+	Title string    `xml:"channel>title"`
+	Items []rssItem `xml:"channel>item"`
 }
 
 type rssItem struct {
@@ -23,23 +19,17 @@ type rssItem struct {
 	Guid    string `xml:"guid"`
 }
 
-func rssFeedFromXml(bytes []byte) (rssFeed, error) {
+func rssFeedFromXml(r io.Reader) (rssFeed, error) {
 	result := rssFeed{}
-	if err := xml.Unmarshal(bytes, &result); err != nil {
-		return rssFeed{}, err
-	}
-	return result, nil
+	decoder := xml.NewDecoder(r)
+	decoder.Strict = false
+	err := decoder.Decode(&result)
+	return result, err
 }
 
 func (rawFeed rssFeed) validate() error {
-	rawChannel := rawFeed.Channel
-
-	if len(rawChannel.Title) == 0 {
+	if len(rawFeed.Title) == 0 {
 		return errors.New("Missing channel title")
-	}
-
-	if len(rawChannel.Link) == 0 {
-		return errors.New("Missing channel link")
 	}
 
 	for _, rawItem := range rawFeed.Items {
@@ -64,10 +54,8 @@ func (rawFeed rssFeed) validate() error {
 }
 
 func (rawFeed rssFeed) convertToFeed() (Feed, error) {
-	rawChannel := rawFeed.Channel
 	feed := Feed{
-		Url:   rawChannel.Link,
-		Name:  rawChannel.Title,
+		Name:  rawFeed.Title,
 		Items: make([]FeedItem, 0, len(rawFeed.Items)),
 	}
 

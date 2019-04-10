@@ -3,7 +3,6 @@ package feed
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -27,12 +26,20 @@ func NewFeedLoader() *FeedLoader {
 // In addition, it *requires* the GUID field to be set on each feed item,
 // even though the RSS 2.0 spec makes that field optional.
 func (f *FeedLoader) LoadFeedFromUrl(url string) (Feed, error) {
-	bytes, err := f.loadFeedData(url)
+	resp, err := f.client.Get(url)
 	if err != nil {
 		return Feed{}, err
 	}
+	defer resp.Body.Close()
 
-	rawFeed, err := rssFeedFromXml(bytes)
+	if resp.StatusCode != 200 {
+		errMsg := fmt.Sprintf(
+			"Received HTTP status %v from url %v",
+			resp.StatusCode, url)
+		return Feed{}, errors.New(errMsg)
+	}
+
+	rawFeed, err := rssFeedFromXml(resp.Body)
 	if err != nil {
 		return Feed{}, err
 	}
@@ -42,21 +49,4 @@ func (f *FeedLoader) LoadFeedFromUrl(url string) (Feed, error) {
 	}
 
 	return rawFeed.convertToFeed()
-}
-
-func (f *FeedLoader) loadFeedData(url string) ([]byte, error) {
-	resp, err := f.client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		errMsg := fmt.Sprintf(
-			"Received HTTP status %v from url %v",
-			resp.StatusCode, url)
-		return nil, errors.New(errMsg)
-	}
-
-	return ioutil.ReadAll(resp.Body)
 }

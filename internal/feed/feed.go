@@ -4,7 +4,6 @@ import "time"
 
 // Feed represents a content syndication feed (e.g. RSS or Atom)
 type Feed struct {
-	Url   string
 	Name  string
 	Items []FeedItem
 }

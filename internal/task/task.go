@@ -3,12 +3,13 @@ package task
 import (
 	"github.com/wedaly/local-news/internal/feed"
 	"github.com/wedaly/local-news/internal/store"
+	"sync"
 )
 
 // TaskResult describes the outcome of a task to load a feed
 type TaskResult struct {
-	feedId store.FeedId
-	err    error
+	FeedId store.FeedId
+	Err    error
 }
 
 // TaskSubscriber receives notifications about tasks
@@ -25,19 +26,32 @@ type TaskSubscriber interface {
 // TaskManager schedules async, concurrent tasks to load feeds
 // It notifies all subscribers when tasks are scheduled and completed.
 type TaskManager struct {
-	feedStore   *store.FeedStore
-	subscribers []TaskSubscriber
-	loaderChan  chan *feed.FeedLoader
+	feedStore        *store.FeedStore
+	subscribersMutex sync.Mutex
+	subscribers      []TaskSubscriber
+	loaderChan       chan *feed.FeedLoader
 }
 
-func NewTaskManager(feedStore *store.FeedStore, subscribers []TaskSubscriber) *TaskManager {
+func NewTaskManager(feedStore *store.FeedStore) *TaskManager {
 	const numFeedLoaders int = 10
 	loaderChan := make(chan *feed.FeedLoader, numFeedLoaders)
 	for i := 0; i < numFeedLoaders; i++ {
 		loaderChan <- feed.NewFeedLoader()
 	}
 
-	return &TaskManager{feedStore, subscribers, loaderChan}
+	return &TaskManager{
+		feedStore:   feedStore,
+		subscribers: make([]TaskSubscriber, 0),
+		loaderChan:  loaderChan,
+	}
+}
+
+func (m *TaskManager) Subscribe(s TaskSubscriber) {
+	m.subscribersMutex.Lock()
+	defer m.subscribersMutex.Unlock()
+	{
+		m.subscribers = append(m.subscribers, s)
+	}
 }
 
 // ScheduleLoadFeedTask enqueues a new task to load a feed from a URL.
@@ -54,43 +68,49 @@ func (m *TaskManager) ScheduleLoadFeedTask(feedId store.FeedId) {
 		// This implicitly validates that the feed has not been deleted
 		feedRecord, err := m.feedStore.RetrieveFeed(feedId)
 		if err != nil {
-			m.notifyTaskCompleted(TaskResult{err: err})
+			m.notifyTaskCompleted(TaskResult{Err: err})
 			return
 		}
 
 		// Retrieve and parse the feed from a URL
 		feed, err := loader.LoadFeedFromUrl(feedRecord.Url)
 		if err != nil {
-			m.notifyTaskCompleted(TaskResult{err: err})
+			m.notifyTaskCompleted(TaskResult{Err: err})
 			return
 		}
 
 		// Update the database
 		err = m.feedStore.UpdateFeed(feedId, feed)
 		if err != nil {
-			m.notifyTaskCompleted(TaskResult{err: err})
+			m.notifyTaskCompleted(TaskResult{Err: err})
 			return
 		}
 
 		// Notify subscribers that the task completed successfully
-		m.notifyTaskCompleted(TaskResult{feedId: feedId})
+		m.notifyTaskCompleted(TaskResult{FeedId: feedId})
 	}()
 }
 
 func (m *TaskManager) notifyTaskScheduled() {
-	// This is thread-safe because the subscribers list is immutable
-	for _, s := range m.subscribers {
-		// The subscriber is responsible for ensuring that
-		// this method is thread-safe
-		s.HandleTaskScheduled()
+	m.subscribersMutex.Lock()
+	defer m.subscribersMutex.Unlock()
+	{
+		for _, s := range m.subscribers {
+			// The subscriber is responsible for ensuring that
+			// this method is thread-safe
+			s.HandleTaskScheduled()
+		}
 	}
 }
 
 func (m *TaskManager) notifyTaskCompleted(r TaskResult) {
-	// This is thread-safe because the subscribers list is immutable
-	for _, s := range m.subscribers {
-		// The subscriber is responsible for ensuring that
-		// this method is thread-safe
-		s.HandleTaskCompleted(r)
+	m.subscribersMutex.Lock()
+	defer m.subscribersMutex.Unlock()
+	{
+		for _, s := range m.subscribers {
+			// The subscriber is responsible for ensuring that
+			// this method is thread-safe
+			s.HandleTaskCompleted(r)
+		}
 	}
 }

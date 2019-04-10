@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/wedaly/local-news/internal/controller"
 	"github.com/wedaly/local-news/internal/store"
+	"github.com/wedaly/local-news/internal/task"
 	"os"
 	"os/user"
 	"path"
@@ -24,8 +25,11 @@ func main() {
 	}
 	defer feedStore.Close()
 
+	// Set up task manager
+	taskManager := task.NewTaskManager(feedStore)
+
 	// Set up TUI and run event loop
-	ac := controller.NewAppController(feedStore)
+	ac := controller.NewAppController(feedStore, taskManager)
 	if err := ac.App.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running event loop: %v", err)
 		os.Exit(1)

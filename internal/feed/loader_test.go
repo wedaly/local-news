@@ -15,13 +15,13 @@ func TestLoadRssFromUrl(t *testing.T) {
 				<channel>
 					<title>Blog &#8211; My RSS Feed</title>
 					<link>https://example.com</link>
+					<item>
+						<title>First post!</title>
+						<link>https://example.com/first</link>
+						<guid>abcd1234</guid>
+						<pubDate>Sat, 06 Apr 2019 02:00:22 +0000</pubDate>
+					</item>
 				</channel>
-				<item>
-					<title>First post!</title>
-					<link>https://example.com/first</link>
-					<guid>abcd1234</guid>
-					<pubDate>Sat, 06 Apr 2019 02:00:22 +0000</pubDate>
-				</item>
 			</rss>`
 		fmt.Fprintln(w, rssXml)
 	}
@@ -33,10 +33,6 @@ func TestLoadRssFromUrl(t *testing.T) {
 	feed, err := loader.LoadFeedFromUrl(server.URL)
 	if err != nil {
 		t.Fatalf("Error loading feed from test server: %v", err)
-	}
-
-	if feed.Url != "https://example.com" {
-		t.Errorf("Incorrect data from loaded feed (url)")
 	}
 
 	if len(feed.Items) != 1 {
