@@ -31,11 +31,11 @@ func TestScheduleLoadFeedTasks(t *testing.T) {
 	// Create an on-disk feed store
 	// Can't use an in-memory DB because of concurrency issues with SQLite
 	dbPath := path.Join(os.TempDir(), "test-task.db")
+	defer func() { os.Remove(dbPath) }()
 	store := store.NewFeedStore(dbPath)
 	if err := store.Initialize(); err != nil {
 		t.Fatalf("Could not initialize store: %v", err)
 	}
-	defer func() { os.Remove(dbPath) }()
 	defer store.Close()
 
 	// Set up testing HTTP server
