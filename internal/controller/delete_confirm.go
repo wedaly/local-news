@@ -68,7 +68,7 @@ func (c *DeleteConfirmController) HandleModalDone(buttonIndex int, buttonLabel s
 	if buttonIndex == 0 {
 		c.deleteFeed()
 		c.appController.SwitchToPage(pageFeedList)
-	} else if buttonIndex == 1 {
+	} else if buttonIndex == 1 || buttonIndex < 0 {
 		c.appController.SwitchToPage(pageFeedDetail)
 	} else {
 		panic("Invalid button idx")
