@@ -173,8 +173,10 @@ func (c *FeedDetailController) openItemInBrowser() {
 	// Open the url using xdg-open
 	// This assumes that xdg-open is installed, so any distribution
 	// of this program should specify xdg-utils as a dependency.
-	exec.Command("xdg-open", url).Start()
-
-	// Update status so user knows something happened
-	c.statusHeader.SetText(fmt.Sprintf("Opened %v", url))
+	cmd := exec.Command("xdg-open", url)
+	if err := cmd.Start(); err != nil {
+		c.statusHeader.SetText("Could not open browser.  Please check that the xdg-open command is installed.")
+	} else {
+		c.statusHeader.SetText(fmt.Sprintf("Opened %v", url))
+	}
 }
