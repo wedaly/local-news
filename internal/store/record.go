@@ -17,9 +17,6 @@ type FeedRecord struct {
 
 	// Name of the feed
 	Name string
-
-	// Count of number of items that are unread in this feed
-	NumUnread uint
 }
 
 // FeedItemRecord is the data associated with a feed item in the database
@@ -38,10 +35,6 @@ type FeedItemRecord struct {
 	// Globally unique identifier for the item, retrieved
 	// from the feed source.
 	Guid string
-
-	// Read indicates whether the user has read this item
-	// The default value is false
-	Read bool
 }
 
 // FeedSyncStatus represents the most recent attempt to synchronize

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const numStatements int = 12
+const numStatements int = 11
 
 const (
 	selectEveryFeedStmt = iota
@@ -22,7 +22,6 @@ const (
 	selectFeedItemsForFeedStmt
 	upsertFeedItemStmt
 	deleteItemsInFeedStmt
-	markFeedItemReadStmt
 	upsertFeedSyncStatusStmt
 	selectFeedSyncStatusStmt
 )
@@ -173,17 +172,15 @@ func (s *FeedStore) RetrieveFeeds() ([]FeedRecord, error) {
 		var id int64
 		var url string
 		var name string
-		var numUnread uint
 
-		if err := rows.Scan(&id, &url, &name, &numUnread); err != nil {
+		if err := rows.Scan(&id, &url, &name); err != nil {
 			return nil, err
 		}
 
 		records = append(records, FeedRecord{
-			Id:        FeedId(id),
-			Url:       url,
-			Name:      name,
-			NumUnread: numUnread,
+			Id:   FeedId(id),
+			Url:  url,
+			Name: name,
 		})
 	}
 
@@ -197,19 +194,17 @@ func (s *FeedStore) RetrieveFeeds() ([]FeedRecord, error) {
 // RetrieveFeed retrieves a single feed record by its id.
 func (s *FeedStore) RetrieveFeed(id FeedId) (FeedRecord, error) {
 	var url, name string
-	var numUnread uint
 
 	stmt := s.statements[selectFeedStmt]
-	err := stmt.QueryRow(id).Scan(&url, &name, &numUnread)
+	err := stmt.QueryRow(id).Scan(&url, &name)
 	if err != nil {
 		return FeedRecord{}, err
 	}
 
 	record := FeedRecord{
-		Id:        id,
-		Url:       url,
-		Name:      name,
-		NumUnread: numUnread,
+		Id:   id,
+		Url:  url,
+		Name: name,
 	}
 	return record, nil
 }
@@ -230,9 +225,8 @@ func (s *FeedStore) RetrieveFeedItems(feedId FeedId) ([]FeedItemRecord, error) {
 		var url string
 		var title string
 		var date int64
-		var read bool
 
-		if err := rows.Scan(&id, &guid, &url, &title, &date, &read); err != nil {
+		if err := rows.Scan(&id, &guid, &url, &title, &date); err != nil {
 			return nil, err
 		}
 
@@ -242,7 +236,6 @@ func (s *FeedStore) RetrieveFeedItems(feedId FeedId) ([]FeedItemRecord, error) {
 			Date:  time.Unix(date, 0),
 			Url:   url,
 			Guid:  guid,
-			Read:  read,
 		})
 	}
 
@@ -251,14 +244,6 @@ func (s *FeedStore) RetrieveFeedItems(feedId FeedId) ([]FeedItemRecord, error) {
 	}
 
 	return records, nil
-}
-
-// MarkRead marks a particular feed item as read
-// (meaning the user has seen it)
-func (s *FeedStore) MarkRead(id FeedItemId) error {
-	stmt := s.statements[markFeedItemReadStmt]
-	_, err := stmt.Exec(id)
-	return err
 }
 
 // SetFeedSyncStatusError sets the most recent sync attempt to "error" status
@@ -320,7 +305,6 @@ func (s *FeedStore) installSchema() error {
 		url VARCHAR NOT NULL,
 		title VARCHAR NOT NULL,
 		date INTEGER NOT NULL,
-		read INTEGER NOT NULL DEFAULT 0,
 		FOREIGN KEY (feed_id) REFERENCES feed(id)
 	);
 
@@ -347,23 +331,14 @@ func (s *FeedStore) installSchema() error {
 func (s *FeedStore) prepareStatements() error {
 	s.statements = make([]*sql.Stmt, numStatements)
 
-	selectEveryFeedSql := `
-		SELECT id, url, name,
-			(SELECT COUNT(id) FROM feed_item
-				WHERE feed_id = feed.id AND read = 0) AS num_unread
-		FROM feed`
+	selectEveryFeedSql := "SELECT id, url, name FROM feed"
 	if stmt, err := s.db.Prepare(selectEveryFeedSql); err != nil {
 		return err
 	} else {
 		s.statements[selectEveryFeedStmt] = stmt
 	}
 
-	selectFeedSql := `
-		SELECT url, name,
-			(SELECT COUNT(id) FROM feed_item
-				WHERE feed_id = feed.id AND read = 0) AS num_unread
-		FROM feed
-		WHERE id = ?`
+	selectFeedSql := "SELECT url, name FROM feed WHERE id = ?"
 	if stmt, err := s.db.Prepare(selectFeedSql); err != nil {
 		return err
 	} else {
@@ -401,7 +376,7 @@ func (s *FeedStore) prepareStatements() error {
 	}
 
 	selectFeedItemsForFeedSql := `
-		SELECT id, guid, url, title, date, read
+		SELECT id, guid, url, title, date
 		FROM feed_item
 		WHERE feed_id = ?
 		ORDER BY date DESC`
@@ -431,13 +406,6 @@ func (s *FeedStore) prepareStatements() error {
 		return err
 	} else {
 		s.statements[deleteItemsInFeedStmt] = stmt
-	}
-
-	markFeedItemReadSql := "UPDATE feed_item SET read = 1 WHERE id = ?"
-	if stmt, err := s.db.Prepare(markFeedItemReadSql); err != nil {
-		return err
-	} else {
-		s.statements[markFeedItemReadStmt] = stmt
 	}
 
 	upsertFeedSyncStatusSql := `

@@ -113,10 +113,9 @@ func TestInsertFeed(t *testing.T) {
 		numItems := 1
 		feedId := createFeedAndItems(t, store, numItems)
 		expected := FeedRecord{
-			Id:        feedId,
-			Url:       "http://foo.com",
-			Name:      "Foo Feed",
-			NumUnread: 1,
+			Id:   feedId,
+			Url:  "http://foo.com",
+			Name: "Foo Feed",
 		}
 		assertFeed(t, store, feedId, expected)
 	})
@@ -168,10 +167,9 @@ func TestSyncFeedExistingItems(t *testing.T) {
 		}
 
 		expectedFeed := FeedRecord{
-			Id:        feedId,
-			Url:       "http://foo.com",
-			Name:      updatedFeed.Name,
-			NumUnread: 2,
+			Id:   feedId,
+			Url:  "http://foo.com",
+			Name: updatedFeed.Name,
 		}
 		assertFeed(t, store, feedId, expectedFeed)
 
@@ -220,38 +218,6 @@ func TestSetFeedSyncStatusError(t *testing.T) {
 		}
 
 		assertFeedSyncStatus(t, store, feedId, true, false, syncErr)
-	})
-}
-
-func TestNumUnread(t *testing.T) {
-	execWithStore(func(store *FeedStore) {
-		const numFeedItems int = 10
-		createFeedAndItems(t, store, numFeedItems)
-
-		// Initially, all items should be marked unread
-		if retrieved, err := store.RetrieveFeeds(); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed, but got %v", retrieved)
-		} else if retrieved[0].NumUnread != uint(numFeedItems) {
-			t.Fatalf("Expected all %v feed items unread, but got %v",
-				numFeedItems, retrieved[0].NumUnread)
-		}
-
-		// Mark an item as read
-		if err := store.MarkRead(FeedItemId(numFeedItems - 1)); err != nil {
-			t.Fatalf("Could not mark feed item as read: %v", err)
-		}
-
-		// Check that the number is updated
-		if retrieved, err := store.RetrieveFeeds(); err != nil {
-			t.Fatalf("Could not retrieve feeds: %v", err)
-		} else if len(retrieved) != 1 {
-			t.Fatalf("Expected one feed, but got %v", retrieved)
-		} else if retrieved[0].NumUnread != uint(numFeedItems-1) {
-			t.Fatalf("Expected all %v feed items unread, but got %v",
-				numFeedItems-1, retrieved[0].NumUnread)
-		}
 	})
 }
 
