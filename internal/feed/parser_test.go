@@ -29,18 +29,10 @@ func TestParseRssFeed(t *testing.T) {
 			</channel>
 		</rss>`
 
-	rawFeed, err := rssFeedFromXml(bytes.NewReader([]byte(rssXml)))
+	r := bytes.NewReader([]byte(rssXml))
+	feed, err := ParseExternalFeed(r)
 	if err != nil {
-		t.Fatalf("Could not parse RSS XML: %v", err)
-	}
-
-	if err := rawFeed.validate(); err != nil {
-		t.Errorf("RSS feed failed validation check: %v", err)
-	}
-
-	feed, err := rawFeed.convertToFeed()
-	if err != nil {
-		t.Errorf("Could not convert RSS feed to standard format: %v", err)
+		t.Fatalf("Could not parse feed xml: %v", err)
 	}
 
 	expectedFeed := Feed{
@@ -64,5 +56,33 @@ func TestParseRssFeed(t *testing.T) {
 		t.Errorf(
 			"Incorrect values for feed, expected %v but got %v",
 			expectedFeed, feed)
+	}
+}
+
+func TestParseFeedIgnoreAtomNamespace(t *testing.T) {
+	rssXml := `
+		<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<title>Atom</title>
+				<link>https://atom.com</link>
+				<item>
+					<title>Atom post!</title>
+					<link>https://example.com/first</link>
+					<atom:link rel="standout" href="https://atom.com/first"/>
+					<guid>abcd1234</guid>
+					<pubDate>Sat, 06 Apr 2019 02:00:22 +0000</pubDate>
+				</item>
+			</channel>
+		</rss>`
+
+	r := bytes.NewReader([]byte(rssXml))
+	feed, err := ParseExternalFeed(r)
+	if err != nil {
+		t.Fatalf("Could not parse feed xml: %v", err)
+	}
+
+	if feed.Items[0].Url != "https://example.com/first" {
+		t.Errorf("Incorrect URL for item link")
 	}
 }
