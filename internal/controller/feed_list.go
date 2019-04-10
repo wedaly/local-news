@@ -84,7 +84,7 @@ func (c *FeedListController) HandleInput(event *tcell.EventKey) *tcell.EventKey 
 	}
 
 	if event.Rune() == 'r' {
-		c.refreshAllFeeds()
+		c.RefreshAllFeeds()
 		return nil
 	}
 
@@ -110,6 +110,12 @@ func (c *FeedListController) LoadFeedsFromStore() {
 	for i, feed := range feedRecords {
 		c.list.AddItem(feed.Name, "", 0, nil)
 		c.listIdxToFeedId[i] = feed.Id
+	}
+}
+
+func (c *FeedListController) RefreshAllFeeds() {
+	for _, feedId := range c.listIdxToFeedId {
+		c.taskManager.ScheduleLoadFeedTask(feedId)
 	}
 }
 
@@ -140,10 +146,4 @@ func (c *FeedListController) updateTaskStatusText() {
 		status = fmt.Sprintf("Refreshing %v feed(s)...", c.numUncompletedTasks)
 	}
 	c.statusHeader.SetText(status)
-}
-
-func (c *FeedListController) refreshAllFeeds() {
-	for _, feedId := range c.listIdxToFeedId {
-		c.taskManager.ScheduleLoadFeedTask(feedId)
-	}
 }

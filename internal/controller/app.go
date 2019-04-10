@@ -51,6 +51,9 @@ func NewAppController(
 	// Load initial data from database
 	feedListController.LoadFeedsFromStore()
 
+	// Trigger an async refresh of all feeds
+	feedListController.RefreshAllFeeds()
+
 	// Add all pages to the tview `Pages` instance
 	// This has to happen last so that the UI setup from the child controllers
 	// is visible to tview.

@@ -130,7 +130,7 @@ func (c *FeedDetailController) HandleTaskScheduled() {
 
 func (c *FeedDetailController) HandleTaskCompleted(r task.TaskResult) {
 	c.appController.App.QueueUpdateDraw(func() {
-		if c.feedId == r.FeedId {
+		if c.feedId > 0 && c.feedId == r.FeedId {
 			c.LoadFeedDetailsFromStore()
 		}
 	})
