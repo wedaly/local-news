@@ -14,6 +14,10 @@ type TaskResult struct {
 
 // TaskSubscriber receives notifications about tasks
 type TaskSubscriber interface {
+	// HandleTaskScheduled is invoked when a new task is scheduled.
+	// This must be thread-safe.
+	HandleTaskScheduled()
+
 	// HandleTaskCompleted is invoked when a task has been completed.
 	// This must be thread-safe.
 	HandleTaskCompleted(TaskResult)
@@ -54,6 +58,7 @@ func (m *TaskManager) Subscribe(s TaskSubscriber) {
 // If successfully loaded, the feed data is written to the database.
 // Subscribers are notified when the task is scheduled and completed.
 func (m *TaskManager) ScheduleLoadFeedTask(feedId store.FeedId) {
+	m.notifyTaskScheduled()
 	go func() {
 		// Block until loader is available
 		loader := <-m.loaderChan
@@ -84,6 +89,18 @@ func (m *TaskManager) ScheduleLoadFeedTask(feedId store.FeedId) {
 		// Notify subscribers that the task completed successfully
 		m.notifyTaskCompleted(TaskResult{FeedId: feedId})
 	}()
+}
+
+func (m *TaskManager) notifyTaskScheduled() {
+	m.subscribersMutex.Lock()
+	defer m.subscribersMutex.Unlock()
+	{
+		for _, s := range m.subscribers {
+			// The subscriber is responsible for ensuring that
+			// this method is thread-safe
+			s.HandleTaskScheduled()
+		}
+	}
 }
 
 func (m *TaskManager) notifyTaskCompleted(r TaskResult) {

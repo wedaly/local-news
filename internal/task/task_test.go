@@ -7,11 +7,20 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"sync"
 	"testing"
 )
 
 type StubSubscriber struct {
-	resultChan chan TaskResult
+	sync.Mutex
+	numScheduled int
+	resultChan   chan TaskResult
+}
+
+func (s *StubSubscriber) HandleTaskScheduled() {
+	s.Lock()
+	s.numScheduled++
+	s.Unlock()
 }
 
 func (s *StubSubscriber) HandleTaskCompleted(r TaskResult) {
@@ -81,5 +90,12 @@ func TestScheduleLoadFeedTasks(t *testing.T) {
 		} else if r.FeedId != 1 {
 			t.Errorf("Unexpected feed id in task result: %v", r.FeedId)
 		}
+	}
+
+	// Check that notifications were sent for all scheduled tasks
+	if subscriber.numScheduled != numTasks {
+		t.Errorf(
+			"Incorrect number of scheduled notifications, expected %v but got %v",
+			numTasks, subscriber.numScheduled)
 	}
 }
