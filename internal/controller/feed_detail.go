@@ -11,20 +11,23 @@ import (
 // FeedDetailController handles the UI for details about a particular feed,
 // mainly the list of items in the feed.
 type FeedDetailController struct {
-	appController *AppController
-	feedStore     *store.FeedStore
-	taskManager   *task.TaskManager
-	grid          *tview.Grid
-	list          *tview.List
-	statusHeader  *tview.TextView
-	helpFooter    *tview.TextView
-	feedId        store.FeedId
+	appController           *AppController
+	deleteConfirmController *DeleteConfirmController
+	feedStore               *store.FeedStore
+	taskManager             *task.TaskManager
+	grid                    *tview.Grid
+	list                    *tview.List
+	statusHeader            *tview.TextView
+	helpFooter              *tview.TextView
+	feedId                  store.FeedId
 }
 
 func NewFeedDetailController(
 	appController *AppController,
+	deleteConfirmController *DeleteConfirmController,
 	feedStore *store.FeedStore,
 	taskManager *task.TaskManager) *FeedDetailController {
+
 	// Set up the list of feed items
 	list := tview.NewList().
 		ShowSecondaryText(false)
@@ -47,6 +50,7 @@ func NewFeedDetailController(
 
 	c := &FeedDetailController{
 		appController,
+		deleteConfirmController,
 		feedStore,
 		taskManager,
 		grid,
@@ -58,6 +62,9 @@ func NewFeedDetailController(
 
 	// Subscribe for task updates
 	taskManager.Subscribe(c)
+
+	// Subscribe for delete notifications
+	deleteConfirmController.Subscribe(c)
 
 	return c
 }
@@ -72,7 +79,19 @@ func (c *FeedDetailController) HandleInput(event *tcell.EventKey) *tcell.EventKe
 		return nil
 	}
 
+	if event.Rune() == 'd' {
+		c.deleteConfirmController.SetFeed(c.feedId)
+		c.appController.SwitchToPage(pageDeleteConfirm)
+		return nil
+	}
+
 	return event
+}
+
+func (c *FeedDetailController) HandleFeedDeleted(feedId store.FeedId) {
+	if c.feedId > 0 && c.feedId == feedId {
+		c.feedId = 0
+	}
 }
 
 // SetDisplayedFeed loads and displayes the latest version of the specified feed

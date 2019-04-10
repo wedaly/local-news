@@ -25,6 +25,7 @@ type FeedListController struct {
 func NewFeedListController(
 	appController *AppController,
 	feedDetailController *FeedDetailController,
+	deleteConfirmController *DeleteConfirmController,
 	feedStore *store.FeedStore,
 	taskManager *task.TaskManager) *FeedListController {
 
@@ -70,6 +71,9 @@ func NewFeedListController(
 	// Subscribe for task updates
 	taskManager.Subscribe(c)
 
+	// Subscribe for delete notifications
+	deleteConfirmController.Subscribe(c)
+
 	return c
 }
 
@@ -94,6 +98,10 @@ func (c *FeedListController) HandleInput(event *tcell.EventKey) *tcell.EventKey 
 	}
 
 	return event
+}
+
+func (c *FeedListController) HandleFeedDeleted(store.FeedId) {
+	c.LoadFeedsFromStore()
 }
 
 func (c *FeedListController) LoadFeedsFromStore() {

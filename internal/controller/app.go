@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	pageFeedList   = "feedList"
-	pageAddFeed    = "addFeed"
-	pageFeedDetail = "feedDetail"
+	pageFeedList      = "feedList"
+	pageAddFeed       = "addFeed"
+	pageFeedDetail    = "feedDetail"
+	pageDeleteConfirm = "deleteConfirm"
 )
 
 // AppController controls the UI for the application,
@@ -32,14 +33,23 @@ func NewAppController(
 	ac := &AppController{app, pages, pageControllers, pageFeedList}
 	app.SetInputCapture(ac.CaptureInput)
 
+	// Det up the "delete confirm" page controller
+	deleteConfirmController := NewDeleteConfirmController(ac, feedStore)
+	pageControllers[pageDeleteConfirm] = deleteConfirmController
+
 	// Set up the "feed details" page controller
-	feedDetailController := NewFeedDetailController(ac, feedStore, taskManager)
+	feedDetailController := NewFeedDetailController(
+		ac,
+		deleteConfirmController,
+		feedStore,
+		taskManager)
 	pageControllers[pageFeedDetail] = feedDetailController
 
 	// Set up the "feed list" page controller
 	feedListController := NewFeedListController(
 		ac,
 		feedDetailController,
+		deleteConfirmController,
 		feedStore,
 		taskManager)
 	pageControllers[pageFeedList] = feedListController
@@ -60,6 +70,7 @@ func NewAppController(
 	pages.AddPage(pageFeedList, feedListController.GetPage(), true, true)
 	pages.AddPage(pageAddFeed, addFeedController.GetPage(), true, false)
 	pages.AddPage(pageFeedDetail, feedDetailController.GetPage(), true, false)
+	pages.AddPage(pageDeleteConfirm, deleteConfirmController.GetPage(), true, false)
 	app.SetRoot(pages, true)
 
 	return ac
