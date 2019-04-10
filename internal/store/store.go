@@ -277,8 +277,11 @@ func (s *FeedStore) installSchema() error {
 		FOREIGN KEY (feed_id) REFERENCES feed(id)
 	);
 
-	CREATE UNIQUE INDEX IF NOT EXISTS feed_item_feed_guid_idx ON feed_item(feed_id, guid);
-	CREATE INDEX IF NOT EXISTS feed_item_date_idx ON feed_item(date);
+	CREATE UNIQUE INDEX IF NOT EXISTS feed_item_feed_guid_idx
+		ON feed_item(feed_id, guid);
+
+	CREATE INDEX IF NOT EXISTS feed_item_date_idx
+		ON feed_item(date);
 	`
 	_, err := s.db.Exec(sql)
 	return err
