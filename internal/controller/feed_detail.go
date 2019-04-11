@@ -39,7 +39,7 @@ func NewFeedDetailController(
 	statusHeader := tview.NewTextView()
 
 	// Set up a footer to display help text
-	const helpText string = "(o) Open in browser   (d) Delete   (ESC) Back"
+	const helpText string = "(o) Open in browser   (d) Delete Feed   (ESC) Back"
 	helpFooter := tview.NewTextView().
 		SetText(helpText)
 

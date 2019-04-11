@@ -39,7 +39,7 @@ func NewFeedListController(
 	statusHeader := tview.NewTextView()
 
 	// Set up the footer to show help text
-	const helpText string = "(a) Add   (r) Refresh   (ESC) Quit"
+	const helpText string = "(a) Add Feed   (r) Refresh All   (ESC) Quit"
 	helpFooter := tview.NewTextView().
 		SetText(helpText)
 
