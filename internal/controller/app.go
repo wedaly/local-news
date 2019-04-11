@@ -33,7 +33,7 @@ func NewAppController(
 	ac := &AppController{app, pages, pageControllers, pageFeedList}
 	app.SetInputCapture(ac.CaptureInput)
 
-	// Det up the "delete confirm" page controller
+	// Set up the "delete confirm" page controller
 	deleteConfirmController := NewDeleteConfirmController(ac, feedStore)
 	pageControllers[pageDeleteConfirm] = deleteConfirmController
 
