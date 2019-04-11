@@ -23,11 +23,18 @@ func ParseExternalFeed(r io.Reader) (Feed, error) {
 	}
 
 	for _, rawItem := range rawFeed.Items {
+		// GUID isn't required by the RSS specification,
+		// so fallback to using the item URL.
+		guid := rawItem.GUID
+		if len(guid) == 0 {
+			guid = rawItem.Link
+		}
+
 		item := FeedItem{
 			Title: rawItem.Title,
 			Date:  *rawItem.PublishedParsed,
 			Url:   rawItem.Link,
-			Guid:  rawItem.GUID,
+			Guid:  guid,
 		}
 		feed.Items = append(feed.Items, item)
 	}
@@ -51,10 +58,6 @@ func validateFeed(rawFeed *gofeed.Feed) error {
 
 		if len(rawItem.Link) == 0 {
 			return errors.New("Missing item link")
-		}
-
-		if len(rawItem.GUID) == 0 {
-			return errors.New("Missing item GUID")
 		}
 	}
 

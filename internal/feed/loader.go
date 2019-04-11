@@ -22,9 +22,6 @@ func NewFeedLoader() *FeedLoader {
 }
 
 // LoadFeedFromUrl retrieves a feed and parses it into the standardized format.
-// It does not attempt to handle malformed feeds.
-// In addition, it *requires* the GUID field to be set on each feed item,
-// even though the RSS 2.0 spec makes that field optional.
 func (f *FeedLoader) LoadFeedFromUrl(url string) (Feed, error) {
 	resp, err := f.client.Get(url)
 	if err != nil {
