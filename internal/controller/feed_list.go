@@ -107,6 +107,16 @@ func (c *FeedListController) LoadFeedsFromStore() {
 		panic(err)
 	}
 
+	// Look up the currently selected feed ID
+	// so we can preserve the selection after reloading
+	selectedIdx := c.list.GetCurrentItem()
+	selectedFeedId := store.FeedId(-1)
+	newSelectedIdx := -1
+
+	if selectedIdx < len(c.listIdxToFeedId) {
+		selectedFeedId = c.listIdxToFeedId[selectedIdx]
+	}
+
 	// Replace existing items with feeds from the database.
 	// Keep track of the feed ID for each item in the list
 	// so we can operate on them later.
@@ -115,6 +125,17 @@ func (c *FeedListController) LoadFeedsFromStore() {
 	for i, feed := range feedRecords {
 		c.list.AddItem(feed.Name, "", 0, nil)
 		c.listIdxToFeedId[i] = feed.Id
+
+		// Found the new idx for the previously selected feed
+		if feed.Id == selectedFeedId {
+			newSelectedIdx = i
+		}
+	}
+
+	// Set the selected item back to the feed selected before the refresh
+	// (unless it was deleted by the refresh, in which case keep the default)
+	if newSelectedIdx >= 0 {
+		c.list.SetCurrentItem(newSelectedIdx)
 	}
 }
 
