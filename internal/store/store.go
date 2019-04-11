@@ -331,7 +331,9 @@ func (s *FeedStore) installSchema() error {
 func (s *FeedStore) prepareStatements() error {
 	s.statements = make([]*sql.Stmt, numStatements)
 
-	selectEveryFeedSql := "SELECT id, url, name FROM feed"
+	selectEveryFeedSql := `
+		SELECT id, url, name FROM feed
+		ORDER BY name ASC`
 	if stmt, err := s.db.Prepare(selectEveryFeedSql); err != nil {
 		return err
 	} else {
@@ -379,7 +381,7 @@ func (s *FeedStore) prepareStatements() error {
 		SELECT id, guid, url, title, date
 		FROM feed_item
 		WHERE feed_id = ?
-		ORDER BY date DESC`
+		ORDER BY date DESC, title ASC`
 	if stmt, err := s.db.Prepare(selectFeedItemsForFeedSql); err != nil {
 		return err
 	} else {
