@@ -39,10 +39,6 @@ func main() {
 func getDefaultDBPath() string {
 	const dbName string = ".localnews.db"
 	if usr, err := user.Current(); err != nil {
-		fmt.Fprintf(
-			os.Stderr,
-			"Warning: could not find user's home directory: %v\n",
-			err)
 		return dbName
 	} else {
 		return path.Join(usr.HomeDir, dbName)
