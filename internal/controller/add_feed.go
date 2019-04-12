@@ -88,9 +88,6 @@ func (c *AddFeedController) pasteClipboard() {
 	// or manipulate the cursor position, so this is the best we can do
 	// without creating a custom input field implementation.
 	c.urlField.SetText(clipboardText)
-
-	// Set focus to the OK button (one less keypress for the user)
-	c.appController.App.SetFocus(c.form.GetButton(0))
 }
 
 func (c *AddFeedController) handleUrlFieldChange(text string) {
