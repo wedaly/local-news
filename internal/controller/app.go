@@ -34,7 +34,9 @@ func NewAppController(
 	app.SetInputCapture(ac.CaptureInput)
 
 	// Set up the "delete confirm" page controller
-	deleteConfirmController := NewDeleteConfirmController(ac, feedStore)
+	deleteConfirmController := NewDeleteConfirmController(
+		ac,
+		feedStore)
 	pageControllers[pageDeleteConfirm] = deleteConfirmController
 
 	// Set up the "feed details" page controller
@@ -55,7 +57,10 @@ func NewAppController(
 	pageControllers[pageFeedList] = feedListController
 
 	// Set up the "add feed" page controller.
-	addFeedController := NewAddFeedController(ac, feedStore, taskManager)
+	addFeedController := NewAddFeedController(
+		ac,
+		feedStore,
+		taskManager)
 	pageControllers[pageAddFeed] = addFeedController
 
 	// Load initial data from database

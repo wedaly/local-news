@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
 	"os/exec"
@@ -39,7 +40,8 @@ func NewFeedDetailController(
 	statusHeader := tview.NewTextView()
 
 	// Set up a footer to display help text
-	const helpText string = "(o) Open in browser   (d) Delete Feed   (ESC) Back"
+	// translators: the characters in brackets are keyboard commands
+	helpText := i18n.Gettext("(o) Open in browser   (d) Delete Feed   (ESC) Back")
 	helpFooter := tview.NewTextView().
 		SetText(helpText)
 
@@ -126,7 +128,7 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 	}
 
 	// Display the name of the feed
-	boxTitle := fmt.Sprintf("Feed: %v", feed.Name)
+	boxTitle := fmt.Sprintf(i18n.Gettext("Feed: %v"), feed.Name)
 	c.list.Box.SetTitle(boxTitle)
 
 	// Replace existing items with items from the database
@@ -134,7 +136,11 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 	c.list.Clear()
 	c.listIdxToItemUrl = make([]string, len(feedItems))
 	for i, item := range feedItems {
-		itemText := fmt.Sprintf("%v  %v", item.Date.Format("2006-01-02"), item.Title)
+		itemText := fmt.Sprintf(
+			// translators: [1] is the item's date and [2] is the item's title
+			i18n.Gettext("%[1]v  %[2]v"),
+			i18n.FormatDate(item.Date),
+			item.Title)
 		c.list.AddItem(itemText, "", 0, nil)
 		c.listIdxToItemUrl[i] = item.Url
 	}
@@ -142,15 +148,19 @@ func (c *FeedDetailController) LoadFeedDetailsFromStore() {
 	// Display the feed's last sync status (if any)
 	if hasSynced {
 		if syncStatus.Success {
-			formattedDate := syncStatus.Date.Format("2006-01-02 15:04:05 MST")
-			lastSyncedText := fmt.Sprintf("Last synced %v", formattedDate)
+			formattedDate := i18n.FormatDatetime(syncStatus.Date)
+			lastSyncedText := fmt.Sprintf(
+				// translators: the value is a date
+				i18n.Gettext("Last synced %v"),
+				formattedDate)
 			c.statusHeader.SetText(lastSyncedText)
 		} else {
-			loadErrText := "An error occurred while loading the feed.  Please try reloading the feed later."
+			loadErrText := i18n.Gettext(
+				"An error occurred while loading the feed.  Please try reloading the feed later.")
 			c.statusHeader.SetText(loadErrText)
 		}
 	} else {
-		c.statusHeader.SetText("Loading feed...")
+		c.statusHeader.SetText(i18n.Gettext("Loading feed..."))
 	}
 }
 
@@ -175,8 +185,11 @@ func (c *FeedDetailController) openItemInBrowser() {
 	// of this program should specify xdg-utils as a dependency.
 	cmd := exec.Command("xdg-open", url)
 	if err := cmd.Start(); err != nil {
-		c.statusHeader.SetText("Could not open browser.  Please check that the xdg-open command is installed.")
+		errMsg := i18n.Gettext("Could not open browser.  Please check that the xdg-open command is installed.")
+		c.statusHeader.SetText(errMsg)
 	} else {
-		c.statusHeader.SetText(fmt.Sprintf("Opened %v", url))
+		// translators: the argument is a URL
+		msg := fmt.Sprintf(i18n.Gettext("Opened %v"), url)
+		c.statusHeader.SetText(msg)
 	}
 }

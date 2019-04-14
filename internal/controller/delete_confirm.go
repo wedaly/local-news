@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 )
 
@@ -26,7 +27,11 @@ func NewDeleteConfirmController(
 	feedStore *store.FeedStore) *DeleteConfirmController {
 
 	modal := tview.NewModal().
-		AddButtons([]string{"Yes", "No"})
+		AddButtons([]string{
+			// translators: this is text for a button
+			i18n.Gettext("Yes"),
+			// translators: this is text for a button
+			i18n.Gettext("No")})
 
 	subscribers := make([]DeleteSubscriber, 0)
 
@@ -81,7 +86,10 @@ func (c *DeleteConfirmController) updateModalText() {
 		panic(err)
 	}
 
-	confirmText := fmt.Sprintf("Delete feed '%v'?", feed.Name)
+	confirmText := fmt.Sprintf(
+		// translators: the argument is the feed title
+		i18n.Gettext("Delete feed '%v'?"),
+		feed.Name)
 	c.modal.SetText(confirmText)
 }
 

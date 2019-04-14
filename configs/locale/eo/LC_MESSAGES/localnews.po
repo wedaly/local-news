@@ -1,0 +1,108 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# will <will@wills-macbook-pro.local>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-15 07:32-0700\n"
+"PO-Revision-Date: 2019-04-14 17:08-0400\n"
+"Last-Translator: will <will@wills-macbook-pro.local>\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: internal/controller/feed_list.go:39
+msgid "All Feeds"
+msgstr "All Feeds"
+
+#. translators: the characters in parentheses are keyboard commands
+#: internal/controller/feed_list.go:46
+msgid "(a) Add Feed   (r) Refresh All   (ESC) Quit"
+msgstr ""
+
+#: internal/controller/feed_list.go:186
+#, fuzzy
+msgid "All feeds updated"
+msgstr "All Feeds"
+
+#: internal/controller/feed_list.go:190
+msgid "Refreshing %v feed..."
+msgid_plural "Refreshing %v feeds"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: this is text for a button
+#: internal/controller/delete_confirm.go:32
+msgid "Yes"
+msgstr ""
+
+#. translators: this is text for a button
+#: internal/controller/delete_confirm.go:34
+msgid "No"
+msgstr ""
+
+#. translators: the argument is the feed title
+#: internal/controller/delete_confirm.go:91
+msgid "Delete feed '%v'?"
+msgstr ""
+
+#. translators: the characters in brackets are keyboard commands
+#: internal/controller/feed_detail.go:44
+msgid "(o) Open in browser   (d) Delete Feed   (ESC) Back"
+msgstr ""
+
+#: internal/controller/feed_detail.go:131
+msgid "Feed: %v"
+msgstr ""
+
+#. translators: [1] is the item's date and [2] is the item's title
+#: internal/controller/feed_detail.go:141
+msgid "%[1]v  %[2]v"
+msgstr ""
+
+#. translators: the value is a date
+#: internal/controller/feed_detail.go:154
+msgid "Last synced %v"
+msgstr ""
+
+#: internal/controller/feed_detail.go:159
+msgid ""
+"An error occurred while loading the feed.  Please try reloading the feed "
+"later."
+msgstr ""
+
+#: internal/controller/feed_detail.go:163
+msgid "Loading feed..."
+msgstr ""
+
+#: internal/controller/feed_detail.go:188
+msgid ""
+"Could not open browser.  Please check that the xdg-open command is installed."
+msgstr ""
+
+#. translators: the argument is a URL
+#: internal/controller/feed_detail.go:192
+msgid "Opened %v"
+msgstr ""
+
+#: internal/controller/add_feed.go:29
+msgid "URL"
+msgstr ""
+
+#: internal/controller/add_feed.go:30
+msgid "OK"
+msgstr ""
+
+#: internal/controller/add_feed.go:32
+msgid "Add feed"
+msgstr ""
+
+#: internal/controller/add_feed.go:40
+msgid "Press Ctrl-V to paste feed URL"
+msgstr ""

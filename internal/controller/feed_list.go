@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
+	"sort"
+	"strings"
 )
 
 // FeedListController handles the "feed list" page in the UI
@@ -33,13 +36,14 @@ func NewFeedListController(
 	list := tview.NewList().
 		ShowSecondaryText(false)
 	list.Box.SetBorder(true).
-		SetTitle("All Feeds")
+		SetTitle(i18n.Gettext("All Feeds"))
 
 	// Set up the header to display feed loading status
 	statusHeader := tview.NewTextView()
 
 	// Set up the footer to show help text
-	const helpText string = "(a) Add Feed   (r) Refresh All   (ESC) Quit"
+	// translators: the characters in parentheses are keyboard commands
+	helpText := i18n.Gettext("(a) Add Feed   (r) Refresh All   (ESC) Quit")
 	helpFooter := tview.NewTextView().
 		SetText(helpText)
 
@@ -107,6 +111,14 @@ func (c *FeedListController) LoadFeedsFromStore() {
 		panic(err)
 	}
 
+	// Sort the feeds ascending by name
+	// (case-insensitive, locale-aware)
+	sort.Slice(feedRecords, func(i, j int) bool {
+		s1 := strings.ToLower(feedRecords[i].Name)
+		s2 := strings.ToLower(feedRecords[j].Name)
+		return i18n.CompareStrings(s1, s2)
+	})
+
 	// Look up the currently selected feed ID
 	// so we can preserve the selection after reloading
 	selectedIdx := c.list.GetCurrentItem()
@@ -171,9 +183,15 @@ func (c *FeedListController) handleFeedSelected(idx int, text string, secondaryT
 }
 
 func (c *FeedListController) updateTaskStatusText() {
-	status := "All feeds updated"
+	status := i18n.Gettext("All feeds updated")
 	if c.numUncompletedTasks > 0 {
-		status = fmt.Sprintf("Refreshing %v feed(s)...", c.numUncompletedTasks)
+		// translators: the argument is the number of feeds being refreshed
+		refreshMsg := i18n.NGettext(
+			"Refreshing %v feed...",
+			"Refreshing %v feeds",
+			c.numUncompletedTasks)
+		formattedCount := i18n.FormatNumber(c.numUncompletedTasks)
+		status = fmt.Sprintf(refreshMsg, formattedCount)
 	}
 	c.statusHeader.SetText(status)
 }

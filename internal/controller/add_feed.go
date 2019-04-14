@@ -4,6 +4,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
 	"net/url"
@@ -25,16 +26,18 @@ func NewAddFeedController(
 
 	// Set up the form
 	form := tview.NewForm().
-		AddInputField("URL", "", 0, nil, nil).
-		AddButton("OK", nil)
-	form.SetBorder(true).SetTitle("Add feed")
+		AddInputField(i18n.Gettext("URL"), "", 0, nil, nil).
+		AddButton(i18n.Gettext("OK"), nil)
+	form.SetBorder(true).SetTitle(
+		i18n.Gettext("Add feed"))
 
 	// Configure the URL input field
 	urlField, ok := form.GetFormItem(0).(*tview.InputField)
 	if !ok {
 		panic("Could not retrieve input field from form")
 	}
-	urlField.SetPlaceholder("Press Ctrl-V to paste feed URL")
+	urlField.SetPlaceholder(
+		i18n.Gettext("Press Ctrl-V to paste feed URL"))
 	urlField.SetPlaceholderTextColor(tcell.ColorBlack)
 
 	c := &AddFeedController{

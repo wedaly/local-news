@@ -13,3 +13,10 @@
 
 bin
 *.db
+
+# vim
+*.swp
+
+# gettext
+*.pot
+*.po~
