@@ -20,7 +20,10 @@ func main() {
 
 	// Set locale from environment variables (e.g. LC_ALL)
 	if err := i18n.SetLocaleFromEnv(); err != nil {
-		panic(err)
+		// Fallback to "C", which should be available everywhere
+		if err := i18n.SetLocale("C"); err != nil {
+			panic(err)
+		}
 	}
 
 	// Load i18n translations
