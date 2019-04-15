@@ -1,11 +1,13 @@
 package i18n
 
 import (
-	"testing"
 	"strconv"
+	"testing"
 )
 
 func TestFormatNumber(t *testing.T) {
+	SetLocale("C")
+
 	// Each value has one more digit than the previous val
 	// If MaxDigits is sufficiently large, val will wrap around due to
 	// integer overflow, which is okay for this test.
@@ -19,7 +21,7 @@ func TestFormatNumber(t *testing.T) {
 }
 
 func TestFormatNumberWithLocale(t *testing.T) {
-	SetLocale("de_DE")  // Assumes this is a valid locale on the system
+	SetLocale("de_DE") // Assumes this is a valid locale on the system
 	val := 123456789
 	result := FormatNumber(val)
 	expected := "123.456.789"
