@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-15 07:32-0700\n"
+"POT-Creation-Date: 2019-04-15 09:13-0700\n"
 "PO-Revision-Date: 2019-04-14 17:08-0400\n"
 "Last-Translator: will <will@wills-macbook-pro.local>\n"
 "Language-Team: English\n"
@@ -33,7 +33,7 @@ msgstr "All Feeds"
 
 #: internal/controller/feed_list.go:190
 msgid "Refreshing %v feed..."
-msgid_plural "Refreshing %v feeds"
+msgid_plural "Refreshing %v feeds..."
 msgstr[0] ""
 msgstr[1] ""
 

@@ -18,6 +18,11 @@ func main() {
 		dbPath = os.Args[1]
 	}
 
+	// Set locale from environment variables (e.g. LC_ALL)
+	if err := i18n.SetLocaleFromEnv(); err != nil {
+		panic(err)
+	}
+
 	// Load i18n translations
 	i18n.InitTranslations("localnews")
 

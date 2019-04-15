@@ -188,7 +188,7 @@ func (c *FeedListController) updateTaskStatusText() {
 		// translators: the argument is the number of feeds being refreshed
 		refreshMsg := i18n.NGettext(
 			"Refreshing %v feed...",
-			"Refreshing %v feeds",
+			"Refreshing %v feeds...",
 			c.numUncompletedTasks)
 		formattedCount := i18n.FormatNumber(c.numUncompletedTasks)
 		status = fmt.Sprintf(refreshMsg, formattedCount)
