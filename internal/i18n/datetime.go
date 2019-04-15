@@ -10,10 +10,16 @@ package i18n
 char* formatDatetime(char* fmt, long unixTs) {
 	time_t t = (time_t)(unixTs);
 	struct tm *tm = localtime(&t);
+	if (tm == NULL) {
+		return NULL;
+	}
+
 	size_t sz = 512;
 	char* s = (char *)malloc(sz);
-	strftime(s, sz, fmt, tm);
-	s[sz - 1] = '\0';
+	if (s != NULL ) {
+		strftime(s, sz, fmt, tm);
+		s[sz - 1] = '\0';
+	}
 	return s;
 }
 */
