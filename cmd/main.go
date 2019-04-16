@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Initialize i18n modules based on current locale
-	i18n.InitTranslations("localnews")
+	i18n.InitTranslations("localnews", []string{"./configs/locale"})
 	i18n.InitDateFormats()
 
 	// Open connection to the SQLite database

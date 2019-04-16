@@ -5,104 +5,109 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: localnews\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-15 09:13-0700\n"
+"POT-Creation-Date: 2019-04-16 14:59-0700\n"
 "PO-Revision-Date: 2019-04-14 17:08-0400\n"
 "Last-Translator: will <will@wills-macbook-pro.local>\n"
 "Language-Team: English\n"
-"Language: en_US\n"
+"Language: eo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: internal/i18n/translate_test.go:14 internal/i18n/translate_test.go:22
 #: internal/controller/feed_list.go:39
 msgid "All Feeds"
-msgstr "All Feeds"
+msgstr "[Ⱥłł Fɇɇđs łøɍɇm ɨᵽsᵾm]"
+
+#: internal/i18n/translate_test.go:30 internal/i18n/translate_test.go:38
+#: internal/controller/feed_list.go:190
+msgid "Refreshing %v feed..."
+msgid_plural "Refreshing %v feeds..."
+msgstr[0] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđ... łøɍɇm ɨᵽsᵾm]"
+msgstr[1] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđs... łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the characters in parentheses are keyboard commands
 #: internal/controller/feed_list.go:46
 msgid "(a) Add Feed   (r) Refresh All   (ESC) Quit"
-msgstr ""
+msgstr "[(Ⱥ) Ⱥđđ Fɇɇđ (ɍ) Ɍɇfɍɇsħ Ⱥłł (ɆSȻ) Ꝗᵾɨŧ łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/feed_list.go:186
-#, fuzzy
 msgid "All feeds updated"
-msgstr "All Feeds"
-
-#: internal/controller/feed_list.go:190
-msgid "Refreshing %v feed..."
-msgid_plural "Refreshing %v feeds..."
-msgstr[0] ""
-msgstr[1] ""
+msgstr "[Ⱥłł fɇɇđs ᵾᵽđȺŧɇđ łøɍɇm ɨᵽsᵾm]"
 
 #. translators: this is text for a button
 #: internal/controller/delete_confirm.go:32
 msgid "Yes"
-msgstr ""
+msgstr "[Ɏɇs łøɍɇm ɨᵽsᵾm]"
 
 #. translators: this is text for a button
 #: internal/controller/delete_confirm.go:34
 msgid "No"
-msgstr ""
+msgstr "[Nø łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the argument is the feed title
 #: internal/controller/delete_confirm.go:91
 msgid "Delete feed '%v'?"
-msgstr ""
+msgstr "[Đɇłɇŧɇ fɇɇđ '%v'? łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the characters in brackets are keyboard commands
 #: internal/controller/feed_detail.go:44
 msgid "(o) Open in browser   (d) Delete Feed   (ESC) Back"
-msgstr ""
+msgstr "[(ø) Øᵽɇn ɨn ƀɍøwsɇɍ (đ) Đɇłɇŧɇ Fɇɇđ (ɆSȻ) ɃȺȼꝁ łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/feed_detail.go:131
 msgid "Feed: %v"
-msgstr ""
+msgstr "[Fɇɇđ: %v łøɍɇm ɨᵽsᵾm]"
 
 #. translators: [1] is the item's date and [2] is the item's title
 #: internal/controller/feed_detail.go:141
 msgid "%[1]v  %[2]v"
-msgstr ""
+msgstr "[%[1]v  %[2]v łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the value is a date
 #: internal/controller/feed_detail.go:154
 msgid "Last synced %v"
-msgstr ""
+msgstr "[ŁȺsŧ sɏnȼɇđ %v łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/feed_detail.go:159
 msgid ""
 "An error occurred while loading the feed.  Please try reloading the feed "
 "later."
 msgstr ""
+"[Ⱥn ɇɍɍøɍ øȼȼᵾɍɍɇđ wħɨłɇ łøȺđɨnǥ ŧħɇ fɇɇđ. ⱣłɇȺsɇ ŧɍɏ ɍɇłøȺđɨnǥ ŧħɇ fɇɇđ "
+"łȺŧɇɍ. łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/feed_detail.go:163
 msgid "Loading feed..."
-msgstr ""
+msgstr "[ŁøȺđɨnǥ fɇɇđ... łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/feed_detail.go:188
 msgid ""
 "Could not open browser.  Please check that the xdg-open command is installed."
 msgstr ""
+"[Ȼøᵾłđ nøŧ øᵽɇn ƀɍøwsɇɍ. ⱣłɇȺsɇ ȼħɇȼꝁ ŧħȺŧ ŧħɇ xđǥ-øᵽɇn ȼømmȺnđ ɨs "
+"ɨnsŧȺłłɇđ. łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the argument is a URL
 #: internal/controller/feed_detail.go:192
 msgid "Opened %v"
-msgstr ""
+msgstr "[Øᵽɇnɇđ %v łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/add_feed.go:29
 msgid "URL"
-msgstr ""
+msgstr "[ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/add_feed.go:30
 msgid "OK"
-msgstr ""
+msgstr "[ØꝀ łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/add_feed.go:32
 msgid "Add feed"
-msgstr ""
+msgstr "[Ⱥđđ fɇɇđ łøɍɇm ɨᵽsᵾm]"
 
 #: internal/controller/add_feed.go:40
 msgid "Press Ctrl-V to paste feed URL"
-msgstr ""
+msgstr "[Ᵽɍɇss Ȼŧɍł-V ŧø ᵽȺsŧɇ fɇɇđ ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
