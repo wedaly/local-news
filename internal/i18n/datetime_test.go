@@ -5,9 +5,15 @@ import (
 	"time"
 )
 
-func TestFormatDate(t *testing.T) {
-	SetLocale("C")
+func initDateLocale(t *testing.T, locale string) {
+	if err := SetLocale(locale); err != nil {
+		t.Fatalf("Could not set locale to %v", locale)
+	}
 	InitDateFormats()
+}
+
+func TestFormatDate(t *testing.T) {
+	initDateLocale(t, "C")
 	d := time.Date(2020, 1, 2, 3, 4, 5, 0, time.Local)
 	result := FormatDate(d)
 	expected := "01/02/20"
@@ -17,8 +23,7 @@ func TestFormatDate(t *testing.T) {
 }
 
 func TestFormatDateLocalized(t *testing.T) {
-	SetLocale("de_DE")
-	InitDateFormats()
+	initDateLocale(t, "de_DE.UTF-8")
 	d := time.Date(2020, 1, 2, 3, 4, 5, 0, time.Local)
 	result := FormatDate(d)
 	expected := "02.01.2020"
@@ -28,8 +33,7 @@ func TestFormatDateLocalized(t *testing.T) {
 }
 
 func TestFormatDatetime(t *testing.T) {
-	SetLocale("C")
-	InitDateFormats()
+	initDateLocale(t, "C")
 	d := time.Date(2020, 1, 2, 3, 4, 5, 0, time.Local)
 	result := FormatDatetime(d)
 	expected := "Thu Jan  2 03:04:05 2020"
@@ -39,8 +43,7 @@ func TestFormatDatetime(t *testing.T) {
 }
 
 func TestFormatDatetimeLocalized(t *testing.T) {
-	SetLocale("de_DE")
-	InitDateFormats()
+	initDateLocale(t, "de_DE.UTF-8")
 	d := time.Date(2020, 1, 2, 3, 4, 5, 0, time.Local)
 	result := FormatDatetime(d)
 	expected := "Do 02 Jan 2020 03:04:05 PST"

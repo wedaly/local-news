@@ -113,7 +113,7 @@ func (c *FeedListController) LoadFeedsFromStore() {
 
 	// Sort the feeds ascending by name
 	// (case-insensitive, locale-aware)
-	sort.Slice(feedRecords, func(i, j int) bool {
+	sort.SliceStable(feedRecords, func(i, j int) bool {
 		s1 := strings.ToLower(feedRecords[i].Name)
 		s2 := strings.ToLower(feedRecords[j].Name)
 		return i18n.CompareStrings(s1, s2)

@@ -6,7 +6,9 @@ import (
 )
 
 func TestFormatNumber(t *testing.T) {
-	SetLocale("C")
+	if err := SetLocale("C"); err != nil {
+		t.Fatalf("Could not set locale")
+	}
 
 	// Each value has one more digit than the previous val
 	// If MaxDigits is sufficiently large, val will wrap around due to
@@ -21,7 +23,9 @@ func TestFormatNumber(t *testing.T) {
 }
 
 func TestFormatNumberWithLocale(t *testing.T) {
-	SetLocale("de_DE") // Assumes this is a valid locale on the system
+	if err := SetLocale("de_DE.UTF-8"); err != nil {
+		t.Fatalf("Could not set locale")
+	}
 	val := 123456789
 	result := FormatNumber(val)
 	expected := "123.456.789"

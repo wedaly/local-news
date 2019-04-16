@@ -26,9 +26,9 @@ func main() {
 		}
 	}
 
-	// Initialize i18n based on current locale
-	i18n.InitDateFormats()
+	// Initialize i18n modules based on current locale
 	i18n.InitTranslations("localnews")
+	i18n.InitDateFormats()
 
 	// Open connection to the SQLite database
 	feedStore := store.NewFeedStore(dbPath)
