@@ -26,6 +26,8 @@ If you are on Linux, you will need to install:
 
 To build the program: `make`
 
+To run the program after it's built: `./bin/localnews`
+
 To run tests: `make tests`
 
 # Localization
