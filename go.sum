@@ -36,6 +36,8 @@ github.com/wedaly/tview v0.0.0-20190417171315-93a5f733e92e h1:buNDNtQxSoWxZG2Tdg
 github.com/wedaly/tview v0.0.0-20190417171315-93a5f733e92e/go.mod h1:nHyj+PIBrFW4XqSqVEuEjs5cGz7pZTJnNi9mmXuZj+g=
 github.com/wedaly/tview v0.0.0-20190417172100-a39d046c4360 h1:xlt6k63TKkEU8F2buu6I42JXLiFnJJ8+Db5GGllSTLY=
 github.com/wedaly/tview v0.0.0-20190417172100-a39d046c4360/go.mod h1:nHyj+PIBrFW4XqSqVEuEjs5cGz7pZTJnNi9mmXuZj+g=
+github.com/wedaly/tview v0.0.0-20190417173735-743e3fe55da0 h1:LWs7bCcFlgrh8QF69dQjUL6cDfzdMOQe9XsZwNNheqk=
+github.com/wedaly/tview v0.0.0-20190417173735-743e3fe55da0/go.mod h1:nHyj+PIBrFW4XqSqVEuEjs5cGz7pZTJnNi9mmXuZj+g=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20180218175443-cbe0f9307d01/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20181114220301-adae6a3d119a/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=

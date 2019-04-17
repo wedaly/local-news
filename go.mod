@@ -12,6 +12,6 @@ require (
 	github.com/mmcdole/goxpp v0.0.0-20181012175147-0068e33feabf // indirect
 	github.com/rivo/uniseg v0.0.0-20190313204849-f699dde9c340 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/wedaly/tview v0.0.0-20190417172100-a39d046c4360
+	github.com/wedaly/tview v0.0.0-20190417173735-743e3fe55da0
 	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 // indirect
 )
