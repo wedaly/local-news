@@ -12,7 +12,7 @@ Terminal-based RSS/Atom feed reader
 4. Run the program using a pseudo-locale: `docker run -it -e LANG=eo localnews`
 
 NOTES:
-* Copy-and-paste won't work when using Docker because the application won't receive the ctrl-v command sequence.
+* Copy-and-paste won't work when using Docker because the container won't have access to the host system's clipboard.
 * Opening a feed item in a browser also won't work in Docker, because no browser is installed in the image.
 * The Docker image includes locales for `de_DE.UTF-8`, `es_ES.UTF-8`, and `fr_FR.UTF-8` as well.  Choosing these locales will affect datetime formatting, number formatting, and collation (sort) order.  However, the UI strings have not (yet) been translated for these locales, so the text will appear in English.
 
