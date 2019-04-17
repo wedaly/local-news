@@ -3,6 +3,16 @@ Terminal-based RSS/Atom feed reader.
 
 This was my final project for Harvard Extension CSCI-E37, Developing International Software (Spring 2019).
 
+This is what the application looks like in English:
+
+![Animation of local-news with en_US locale](screencast-en.gif)
+
+And this is what the application looks like with a pseudo-locale.
+
+![Animation of local-news with eo locale](screencast-eo.gif)
+
+Notice that the UI text, dates, and colors change based on the configured locale.  You can't see it in the animations, but numbers are also internationalized in the "refreshing `n` feeds" status text.
+
 # Getting Started
 
 ## Docker
