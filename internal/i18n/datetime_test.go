@@ -3,6 +3,7 @@ package i18n
 import (
 	"testing"
 	"time"
+	"strings"
 )
 
 func initDateLocale(t *testing.T, locale string) {
@@ -46,8 +47,10 @@ func TestFormatDatetimeLocalized(t *testing.T) {
 	initDateLocale(t, "de_DE.UTF-8")
 	d := time.Date(2020, 1, 2, 3, 4, 5, 0, time.Local)
 	result := FormatDatetime(d)
-	expected := "Do 02 Jan 2020 03:04:05 PST"
-	if result != expected {
+	expected := "Do 02 Jan 2020 03:04:05"
+	// Check prefix instead of the full string to avoid
+	// false positives due to system timezone differences.
+	if !strings.HasPrefix(result, expected) {
 		t.Errorf("Wrong date, expected %v but got %v", expected, result)
 	}
 }
