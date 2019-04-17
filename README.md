@@ -1,5 +1,7 @@
 # local-news
-Terminal-based RSS/Atom feed reader
+Terminal-based RSS/Atom feed reader.
+
+This was my final project for Harvard Extension CSCI-E37, Developing International Software (Spring 2019).
 
 # Getting Started
 
