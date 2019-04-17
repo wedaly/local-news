@@ -2,9 +2,10 @@ package controller
 
 import (
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
+	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
+	"github.com/wedaly/tview"
 )
 
 const (
@@ -24,6 +25,7 @@ type AppController struct {
 }
 
 func NewAppController(
+	config i18n.Config,
 	feedStore *store.FeedStore,
 	taskManager *task.TaskManager) *AppController {
 
@@ -36,6 +38,7 @@ func NewAppController(
 	// Set up the "delete confirm" page controller
 	deleteConfirmController := NewDeleteConfirmController(
 		ac,
+		config,
 		feedStore)
 	pageControllers[pageDeleteConfirm] = deleteConfirmController
 
@@ -59,6 +62,7 @@ func NewAppController(
 	// Set up the "add feed" page controller.
 	addFeedController := NewAddFeedController(
 		ac,
+		config,
 		feedStore,
 		taskManager)
 	pageControllers[pageAddFeed] = addFeedController

@@ -3,10 +3,10 @@ package controller
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
+	"github.com/wedaly/tview"
 	"sort"
 	"strings"
 )

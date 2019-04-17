@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: localnews\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-16 14:59-0700\n"
+"POT-Creation-Date: 2019-04-17 10:21-0700\n"
 "PO-Revision-Date: 2019-04-14 17:08-0400\n"
 "Last-Translator: will <will@wills-macbook-pro.local>\n"
 "Language-Team: English\n"
@@ -39,17 +39,17 @@ msgid "All feeds updated"
 msgstr "[Ⱥłł fɇɇđs ᵾᵽđȺŧɇđ łøɍɇm ɨᵽsᵾm]"
 
 #. translators: this is text for a button
-#: internal/controller/delete_confirm.go:32
+#: internal/controller/delete_confirm.go:33
 msgid "Yes"
 msgstr "[Ɏɇs łøɍɇm ɨᵽsᵾm]"
 
 #. translators: this is text for a button
-#: internal/controller/delete_confirm.go:34
+#: internal/controller/delete_confirm.go:35
 msgid "No"
 msgstr "[Nø łøɍɇm ɨᵽsᵾm]"
 
 #. translators: the argument is the feed title
-#: internal/controller/delete_confirm.go:91
+#: internal/controller/delete_confirm.go:103
 msgid "Delete feed '%v'?"
 msgstr "[Đɇłɇŧɇ fɇɇđ '%v'? łøɍɇm ɨᵽsᵾm]"
 
@@ -96,18 +96,18 @@ msgstr ""
 msgid "Opened %v"
 msgstr "[Øᵽɇnɇđ %v łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:29
+#: internal/controller/add_feed.go:31
 msgid "URL"
 msgstr "[ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:30
+#: internal/controller/add_feed.go:32
 msgid "OK"
 msgstr "[ØꝀ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:32
+#: internal/controller/add_feed.go:34
 msgid "Add feed"
 msgstr "[Ⱥđđ fɇɇđ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:40
+#: internal/controller/add_feed.go:49
 msgid "Press Ctrl-V to paste feed URL"
 msgstr "[Ᵽɍɇss Ȼŧɍł-V ŧø ᵽȺsŧɇ fɇɇđ ᵾɌŁ łøɍɇm ɨᵽsᵾm]"

@@ -3,16 +3,17 @@ package controller
 import (
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
+	"github.com/wedaly/tview"
 	"net/url"
 )
 
 // AddFeedController handles the form for creating a new feed from a URL
 type AddFeedController struct {
 	appController *AppController
+	config        i18n.Config
 	feedStore     *store.FeedStore
 	taskManager   *task.TaskManager
 	form          *tview.Form
@@ -21,6 +22,7 @@ type AddFeedController struct {
 
 func NewAddFeedController(
 	appController *AppController,
+	config i18n.Config,
 	feedStore *store.FeedStore,
 	taskManager *task.TaskManager) *AddFeedController {
 
@@ -30,6 +32,13 @@ func NewAddFeedController(
 		AddButton(i18n.Gettext("OK"), nil)
 	form.SetBorder(true).SetTitle(
 		i18n.Gettext("Add feed"))
+
+	// Set initial colors based on localized config
+	form.SetLabelColor(tcell.GetColor(config.FormLabelColor))
+	form.SetButtonBackgroundColor(tcell.GetColor(config.FormButtonBackgroundColor))
+	form.SetButtonTextColor(tcell.GetColor(config.FormButtonTextColor))
+	form.SetFieldBackgroundColor(tcell.GetColor(config.FormFieldBackgroundColor))
+	form.SetFieldTextColor(tcell.GetColor(config.FormFieldTextColor))
 
 	// Configure the URL input field
 	urlField, ok := form.GetFormItem(0).(*tview.InputField)
@@ -42,6 +51,7 @@ func NewAddFeedController(
 
 	c := &AddFeedController{
 		appController,
+		config,
 		feedStore,
 		taskManager,
 		form,
@@ -126,15 +136,19 @@ func (c *AddFeedController) handleOkButton() {
 
 func (c *AddFeedController) showError() {
 	c.appController.App.QueueUpdateDraw(func() {
-		c.form.SetFieldBackgroundColor(tcell.ColorRed)
-		c.form.SetFieldTextColor(tcell.ColorWhite)
+		bg := tcell.GetColor(c.config.FormErrorBackgroundColor)
+		txt := tcell.GetColor(c.config.FormErrorTextColor)
+		c.form.SetFieldBackgroundColor(bg)
+		c.form.SetFieldTextColor(txt)
 	})
 }
 
 func (c *AddFeedController) hideError() {
 	c.appController.App.QueueUpdateDraw(func() {
-		c.form.SetFieldBackgroundColor(tview.Styles.ContrastBackgroundColor)
-		c.form.SetFieldTextColor(tview.Styles.PrimaryTextColor)
+		bg := tcell.GetColor(c.config.FormFieldBackgroundColor)
+		txt := tcell.GetColor(c.config.FormFieldTextColor)
+		c.form.SetFieldBackgroundColor(bg)
+		c.form.SetFieldTextColor(txt)
 	})
 }
 

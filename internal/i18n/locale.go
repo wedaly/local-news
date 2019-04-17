@@ -20,6 +20,13 @@ import (
 	"unsafe"
 )
 
+// GetMessageLocaleFromEnv loads the current effective locale
+// for user-facing messages.
+func GetMessageLocaleFromEnv() string {
+	locale := C.setlocale(C.LC_MESSAGES, nil)
+	return C.GoString(locale)
+}
+
 // SetLocaleFromEnv sets the current locale based on environment variables
 // such as LANG and LC_ALL.  See the setlocale man page for details.
 // This should be called at program startup.

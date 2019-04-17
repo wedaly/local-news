@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<localnews>
+    <colors>
+        <formLabel>maroon</formLabel>
+        <formButtonBackground>yellow</formButtonBackground>
+        <formButtonText>black</formButtonText>
+        <formFieldBackground>green</formFieldBackground>
+        <formFieldText>white</formFieldText>
+        <formErrorBackground>blue</formErrorBackground>
+        <formErrorText>white</formErrorText>
+        <modalText>black</modalText>
+        <modalBackground>gray</modalBackground>
+    </colors>
+</localnews>

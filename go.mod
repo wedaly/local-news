@@ -10,7 +10,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mmcdole/gofeed v1.0.0-beta2
 	github.com/mmcdole/goxpp v0.0.0-20181012175147-0068e33feabf // indirect
-	github.com/rivo/tview v0.0.0-20190406182340-90b4da1bd64c
 	github.com/rivo/uniseg v0.0.0-20190313204849-f699dde9c340 // indirect
+	github.com/stretchr/testify v1.3.0 // indirect
+	github.com/wedaly/tview v0.0.0-20190417172100-a39d046c4360
 	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 // indirect
 )

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
+	"github.com/wedaly/tview"
 )
 
 // PageController handles the UI for a page in the application

@@ -27,8 +27,17 @@ func main() {
 	}
 
 	// Initialize i18n modules based on current locale
-	i18n.InitTranslations("localnews", []string{"./configs/locale"})
+	i18n.InitTranslations("localnews", []string{
+		"./configs/locale",
+		"/usr/share/locale",
+	})
 	i18n.InitDateFormats()
+
+	// Load localized app configuration
+	config := i18n.LoadConfig([]string{
+		"./configs/etc",
+		"/etc/localnews",
+	})
 
 	// Open connection to the SQLite database
 	feedStore := store.NewFeedStore(dbPath)
@@ -43,6 +52,7 @@ func main() {
 
 	// Set up TUI and run event loop
 	ac := controller.NewAppController(
+		config,
 		feedStore,
 		taskManager)
 	if err := ac.App.Run(); err != nil {

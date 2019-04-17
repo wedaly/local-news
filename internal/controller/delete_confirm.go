@@ -3,9 +3,9 @@ package controller
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
+	"github.com/wedaly/tview"
 )
 
 // DeleteSubscriber is notified when a feed is deleted
@@ -24,6 +24,7 @@ type DeleteConfirmController struct {
 
 func NewDeleteConfirmController(
 	appController *AppController,
+	config i18n.Config,
 	feedStore *store.FeedStore) *DeleteConfirmController {
 
 	modal := tview.NewModal().
@@ -32,6 +33,17 @@ func NewDeleteConfirmController(
 			i18n.Gettext("Yes"),
 			// translators: this is text for a button
 			i18n.Gettext("No")})
+
+	// Set localized button colors
+	textColor := tcell.GetColor(config.ModalTextColor)
+	backgroundColor := tcell.GetColor(config.ModalBackgroundColor)
+	buttonBackgroundColor := tcell.GetColor(config.FormButtonBackgroundColor)
+	buttonTextColor := tcell.GetColor(config.FormButtonTextColor)
+	modal.
+		SetTextColor(textColor).
+		SetBackgroundColor(backgroundColor).
+		SetButtonBackgroundColor(buttonBackgroundColor).
+		SetButtonTextColor(buttonTextColor)
 
 	subscribers := make([]DeleteSubscriber, 0)
 
