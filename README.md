@@ -51,4 +51,4 @@ To run tests: `make tests`
 
 # Known Issues
 
-Pasting directly to the terminal (e.g. middle-click in X-Windows) will sometimes truncate the pasted text.  This is due to an [bug in the underlying TUI library](https://github.com/gdamore/tcell/issues/200).  As a workaround, you can use "Ctrl-v" to paste directly.  Note that this requires the terminal to send the ctrl-v command to the application, which some terminals don't support.
+Pasting directly to the terminal (e.g. middle-click in X-Windows) will sometimes truncate the pasted text.  This is due to a [bug in the underlying TUI library](https://github.com/gdamore/tcell/issues/200).  As a workaround, you can use "Ctrl-v" to paste directly.  Note that this requires the terminal to send the ctrl-v command to the application, which some terminals don't support.
