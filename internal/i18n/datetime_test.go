@@ -1,9 +1,9 @@
 package i18n
 
 import (
+	"strings"
 	"testing"
 	"time"
-	"strings"
 )
 
 func initDateLocale(t *testing.T, locale string) {

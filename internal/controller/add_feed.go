@@ -3,10 +3,10 @@ package controller
 import (
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
 	"github.com/wedaly/local-news/internal/i18n"
 	"github.com/wedaly/local-news/internal/store"
 	"github.com/wedaly/local-news/internal/task"
-	"github.com/wedaly/tview"
 	"net/url"
 )
 
