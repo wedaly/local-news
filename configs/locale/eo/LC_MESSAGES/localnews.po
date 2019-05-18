@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: localnews\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-17 10:21-0700\n"
+"POT-Creation-Date: 2019-04-27 15:56-0700\n"
 "PO-Revision-Date: 2019-04-14 17:08-0400\n"
 "Last-Translator: will <will@wills-macbook-pro.local>\n"
 "Language-Team: English\n"
@@ -17,26 +17,21 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: internal/i18n/translate_test.go:14 internal/i18n/translate_test.go:22
-#: internal/controller/feed_list.go:39
-msgid "All Feeds"
-msgstr "[Ⱥłł Fɇɇđs łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/add_feed.go:31
+msgid "URL"
+msgstr "[ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/i18n/translate_test.go:30 internal/i18n/translate_test.go:38
-#: internal/controller/feed_list.go:190
-msgid "Refreshing %v feed..."
-msgid_plural "Refreshing %v feeds..."
-msgstr[0] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđ... łøɍɇm ɨᵽsᵾm]"
-msgstr[1] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđs... łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/add_feed.go:32
+msgid "OK"
+msgstr "[ØꝀ łøɍɇm ɨᵽsᵾm]"
 
-#. translators: the characters in parentheses are keyboard commands
-#: internal/controller/feed_list.go:46
-msgid "(a) Add Feed   (r) Refresh All   (ESC) Quit"
-msgstr "[(Ⱥ) Ⱥđđ Fɇɇđ (ɍ) Ɍɇfɍɇsħ Ⱥłł (ɆSȻ) Ꝗᵾɨŧ łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/add_feed.go:34
+msgid "Add feed"
+msgstr "[Ⱥđđ fɇɇđ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/feed_list.go:186
-msgid "All feeds updated"
-msgstr "[Ⱥłł fɇɇđs ᵾᵽđȺŧɇđ łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/add_feed.go:49
+msgid "Press Ctrl-V to paste feed URL"
+msgstr "[Ᵽɍɇss Ȼŧɍł-V ŧø ᵽȺsŧɇ fɇɇđ ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
 
 #. translators: this is text for a button
 #: internal/controller/delete_confirm.go:33
@@ -96,18 +91,23 @@ msgstr ""
 msgid "Opened %v"
 msgstr "[Øᵽɇnɇđ %v łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:31
-msgid "URL"
-msgstr "[ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/feed_list.go:39 internal/i18n/translate_test.go:14
+#: internal/i18n/translate_test.go:22
+msgid "All Feeds"
+msgstr "[Ⱥłł Fɇɇđs łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:32
-msgid "OK"
-msgstr "[ØꝀ łøɍɇm ɨᵽsᵾm]"
+#. translators: the characters in parentheses are keyboard commands
+#: internal/controller/feed_list.go:46
+msgid "(a) Add Feed   (r) Refresh All   (ESC) Quit"
+msgstr "[(Ⱥ) Ⱥđđ Fɇɇđ (ɍ) Ɍɇfɍɇsħ Ⱥłł (ɆSȻ) Ꝗᵾɨŧ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:34
-msgid "Add feed"
-msgstr "[Ⱥđđ fɇɇđ łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/feed_list.go:186
+msgid "All feeds updated"
+msgstr "[Ⱥłł fɇɇđs ᵾᵽđȺŧɇđ łøɍɇm ɨᵽsᵾm]"
 
-#: internal/controller/add_feed.go:49
-msgid "Press Ctrl-V to paste feed URL"
-msgstr "[Ᵽɍɇss Ȼŧɍł-V ŧø ᵽȺsŧɇ fɇɇđ ᵾɌŁ łøɍɇm ɨᵽsᵾm]"
+#: internal/controller/feed_list.go:190 internal/i18n/translate_test.go:30
+#: internal/i18n/translate_test.go:38
+msgid "Refreshing %v feed..."
+msgid_plural "Refreshing %v feeds..."
+msgstr[0] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđ... łøɍɇm ɨᵽsᵾm]"
+msgstr[1] "[Ɍɇfɍɇsħɨnǥ %v fɇɇđs... łøɍɇm ɨᵽsᵾm]"
