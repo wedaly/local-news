@@ -17,6 +17,9 @@ bin
 # vim
 *.swp
 
+# ctags
+tags
+
 # gettext
 *.pot
 *.po~
